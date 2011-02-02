@@ -6,13 +6,14 @@ import socket
 
 
 def start_multiserver(host, port):
-    
+
+    # Classe Acceptor: accetta le connessioni in entrata e le smista su vari Client
     class Acceptor(threading.Thread):
         def __init__(self, serverSocket, accepted_clients ):
             threading.Thread.__init__(self)
             
-            self.connectedNum = 0
-            self.serverSocket = serverSocket
+            self.connectedNum = 0                       # Numero di client connessi
+            self.serverSocket = serverSocket            # Socket
             self.accepted_clients = accepted_clients
             
             print 'Starting acceptor..   ',
@@ -26,16 +27,17 @@ def start_multiserver(host, port):
         def getNumConnected(self):
             return self.connectedNum
         
-        def run(self):
+        def run(self):                                  # Funzione principale del thread, chiamata da .start()
             while True:
-                sock, addr = self.serverSocket.accept()
-                client = Client(sock)
-                self.accepted_clients[sock] = client
-                self.connectedNum += 1
-    
-    
+                sock, addr = self.serverSocket.accept() # Attende una connessione in entrata
+                client = Client(sock)                   # Crea un nuovo Client passandogli il socket su cui comunicare
+                self.accepted_clients[sock] = client    # Lo aggiunge al dizionario dei Client connessi
+                self.connectedNum += 1                  # Aumenta il numero di client connessi
+
+
+    # Classe Client: gestisce le comunicazioni con un singolo client remoto
     class Client():
-        ID = 0
+        ID = 0                          # ID serve per generare un id per ogni client
         
         def __init__(self, sock):
             self.ID = Client.ID
@@ -48,22 +50,22 @@ def start_multiserver(host, port):
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind( (host, port) )
     serverSocket.listen(5)
-    
+
     client_list = {}
     acceptor = Acceptor(serverSocket, client_list)
-     
+
     while True:
         sock_list = client_list.keys()
-        if sock_list:
+    	if sock_list:
             ready_to_read, ready_to_write, in_error = select.select(sock_list, sock_list, sock_list)
             for sock in ready_to_read:
                 data = sock.recv(1024)
                 print "[%s] %s" % (client_list[sock].getID(), data),
-                if sock in ready_to_write: sock.send('Echo:  %s' % data)
-                
+                if sock in ready_to_write: sock.sendall('Echo:  %s' % data)
 
-                
-            
+
+
+
 if __name__ == '__main__':
     start_multiserver(socket.gethostname(), 6969)
     
