@@ -38,12 +38,15 @@ def start_multiserver(host, port):
         ID = 0
         
         def __init__(self, sock):
-            self.ID = Client.ID
-            self.sock = sock
+            self.__ID = Client.ID
+            self.__sock = sock
             Client.ID += 1
         
         def getID(self):
-            return self.ID
+            return self.__ID
+        
+        def getSock(self):
+            return self.__sock
         
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind( (host, port) )
@@ -57,7 +60,6 @@ def start_multiserver(host, port):
         if sock_list:
             ready_to_read, ready_to_write, in_error = select.select(sock_list, sock_list, sock_list)
             for sock in ready_to_read:
-                print dir(sock)
                 data = sock.recv(1024)
                 print "[%s] %s" % (client_list[sock].getID(), data),
                 if sock in ready_to_write: sock.sendall('Echo:  %s' % data)
