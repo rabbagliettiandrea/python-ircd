@@ -40,12 +40,15 @@ def start_multiserver(host, port):
         ID = 0                          # ID serve per generare un id per ogni client
         
         def __init__(self, sock):
-            self.ID = Client.ID
-            self.sock = sock
+            self.__ID = Client.ID
+            self.__sock = sock
             Client.ID += 1
         
         def getID(self):
-            return self.ID
+            return self.__ID
+        
+        def getSock(self):
+            return self.__sock
         
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind( (host, port) )
