@@ -2,17 +2,18 @@ import select
 import threading
 import sys
 import traceback
-from socket import socket, gethostname, AF_INET, SOCK_STREAM
+import socket
 
 
 def start_multiserver(host, port):
     
     class Acceptor(threading.Thread):
-        def __init__(self, serverSocket, accepted):
+        def __init__(self, serverSocket, accepted_clients ):
             threading.Thread.__init__(self)
             
+            self.connectedNum = 0
             self.serverSocket = serverSocket
-            self.accepted = accepted
+            self.accepted_clients = accepted_clients
             
             print 'Starting acceptor..   ',
             try:
@@ -22,31 +23,47 @@ def start_multiserver(host, port):
                 print traceback.print_exc(ex)
                 sys.exit(1)
     
+        def getNumConnected(self):
+            return self.connectedNum
+        
         def run(self):
             while True:
                 sock, addr = self.serverSocket.accept()
-                self.accepted.append(sock)
-                
+                client = Client(sock)
+                self.accepted_clients[sock] = client
+                self.connectedNum += 1
+    
+    
+    class Client():
+        ID = 0
         
-    serverSocket = socket(AF_INET, SOCK_STREAM)
+        def __init__(self, sock):
+            self.ID = Client.ID
+            self.sock = sock
+            Client.ID += 1
+        
+        def getID(self):
+            return self.ID
+        
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind( (host, port) )
     serverSocket.listen(5)
     
-    client_list = []
+    client_list = {}
     acceptor = Acceptor(serverSocket, client_list)
+     
     while True:
-        if client_list:
-            ready_to_read, ready_to_write, in_error = select.select(client_list, client_list, client_list)
-            for client in ready_to_read:
-                while True:
-                    data = client.recv(1024)
-                    print data,
-                    if not data: break
-                    client.send('Echo:  %s' % data)
-                client.close()
+        sock_list = client_list.keys()
+        if sock_list:
+            ready_to_read, ready_to_write, in_error = select.select(sock_list, sock_list, sock_list)
+            for sock in ready_to_read:
+                data = sock.recv(1024)
+                print "[%s] %s" % (client_list[sock].getID(), data),
+                if sock in ready_to_write: sock.send('Echo:  %s' % data)
+                
 
                 
             
 if __name__ == '__main__':
-    start_multiserver(gethostname(), 6969)
+    start_multiserver(socket.gethostname(), 6969)
     
