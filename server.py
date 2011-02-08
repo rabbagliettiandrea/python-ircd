@@ -10,7 +10,7 @@ GRACEFULLY = 0
 USERQUIT = 2
 
 
-class HwIRCserver():
+class Server():
 
     #############################################
     # Classe Client: gestisce le comunicazioni con un singolo client remoto
@@ -18,9 +18,9 @@ class HwIRCserver():
         ID = 0                      # ID serve per generare un id per ogni client
 
         def __init__(self, sock):
-            self.__ID = HwIRCserver.Client.ID
+            self.__ID = Server.Client.ID
             self.__sock = sock
-            HwIRCserver.Client.ID += 1
+            Server.Client.ID += 1
 
         def getID(self):
             return self.__ID
@@ -55,7 +55,7 @@ class HwIRCserver():
                 if sock == self.serverSock:			# Se uno di questi socket è quello del server, significa che un nuovo client si è connesso
                     clientSock = self.serverSock.accept()[0]	# Accettiamo il nuovo client
                     print " - new client accepted"
-                    self.client_list[clientSock] = HwIRCserver.Client(clientSock)	# Lo aggiungiamo alle nostre liste
+                    self.client_list[clientSock] = Server.Client(clientSock)	# Lo aggiungiamo alle nostre liste
                     self.socket_list.append(clientSock)
                     print '------ connection count: %s ------' % self.getConnectionCount()
                 else:								# Altrimenti, uno dei client ha dati da inviare
@@ -88,9 +88,9 @@ class HwIRCserver():
    
 if __name__ == '__main__':
     if '--listen-outside' in sys.argv:
-        srv = HwIRCserver('', 6969) # Map either localhost and LAN 
+        srv = Server('', 6969) # Map either localhost and LAN 
     else:
-        srv = HwIRCserver('127.0.0.1', 6969) # Map in LAN
+        srv = Server('127.0.0.1', 6969) # Map in LAN
 
     try:
         print 'Server started...   '
