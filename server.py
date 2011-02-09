@@ -18,15 +18,15 @@ class Server():
         ID = 0                      # ID serve per generare un id per ogni client
 
         def __init__(self, sock):
-            self.__ID = Server.Client.ID
-            self.__sock = sock
+            self.ID = Server.Client.ID
+            self.sock = sock
+            self.logged = False     # Fin quando il client non invia la sequenza [pass->]nick->user
+            self.user = None
+            self.nick = None
+            self.realName = None
+            self.password = None
+            self.flags = []         # Flag attivi per quell'utente
             Server.Client.ID += 1
-
-        def getID(self):
-            return self.__ID
-
-        def getSock(self):
-            return self.__sock
 
 
     #############################################
@@ -62,8 +62,31 @@ class Server():
                     try:
                         data = sock.recv(256)		# riceviamo questi dati
                         if not data: raise			# Se non abbiamo ricevuto dati, alziamo un'eccezione
-                        print "[%s] %s" % (self.client_list[sock].getID(), data),
-                        sock.send('Echo:  %s' % data)
+
+                        client = self.client_list[sock]
+                        if not client.logged:           # se il client non si è ancora loggato nella rete
+                            #elaboriamo pass/nick/user
+                            if data[:4].lower() == "pass":
+                                if not client.password and not client.nick:
+                                    client.password = data[4:]  # legge password
+                                else:
+                                    sock.send(" -E- Password già inviata o inviata dopo un nick ---")                       # ovviamente da mettere secondo lo standard
+                            elif data[:4].lower() == "nick":
+                                if not client.nick:
+                                    client.nick = data[4:]      # legge nick
+                                else:
+                                    sock.send(" -E- Nick già inviato ---")                                                  # ovviamente da mettere secondo lo standard
+                            elif data[:4].lower() == "user":
+                                if not client.user and (client.nick or client.password):
+                                    # legge e elabora stringa user
+                                else:
+                                    sock.send(" -E- User già inviato o non è stato inviato prima nick o password ---")      # ovviamente da mettere secondo lo standard
+                            else:
+                                sock.send(" -E- Comando non valido ---")       # ovviamente da mettere secondo lo standard
+                        else
+                            # elaboriamo i comandi normali
+                            print "[%s] %s" % (self.client_list[sock].getID(), data),
+                            sock.send('Echo:  %s' % data)
                     except:							# Se non abbiamo ricevuto dati, il client si è sconnesso
                         print "Client disconnected"
                         sock.close()
