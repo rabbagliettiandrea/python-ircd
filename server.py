@@ -4,6 +4,9 @@ import select
 import sys
 import socket
 
+import error.client_error
+import irc_regex
+
 # Return codes:
 ABEND = 1
 GRACEFULLY = 0
@@ -48,47 +51,67 @@ class Server():
         self.serverSock.listen(5)   # Indica quanti client possono al massimo rimanere in coda in attesa dell'accept
 
         while True:                 # ciclo di lettura e scrittura
-        	# Con la select otteniamo la lista dei client che hanno dei dati da inviare (ready_to_read), che sono pronti a ricevere (ready_to_write), e quelli in errore (in_error)
-            ready_to_read, ready_to_write, in_error = select.select(self.socket_list, [], self.socket_list) # Il parametro di timeout omesso rende la select bloccante, sarebbe cpukill
+            # Con la select otteniamo la lista dei client che hanno dei dati da inviare (ready_to_read), 
+            # che sono pronti a ricevere (ready_to_write), e quelli in errore (in_error)
+            ready_to_read, ready_to_write, in_error = select.select(self.socket_list, [], []) # Il parametro di timeout omesso rende la select bloccante, sarebbe cpukill
             #Iteriamo attraverso tutti i client che hanno dati da inviare (quindi il server li deve ricevere)
             for sock in ready_to_read:
-                if sock == self.serverSock:			# Se uno di questi socket è quello del server, significa che un nuovo client si è connesso
-                    clientSock = self.serverSock.accept()[0]	# Accettiamo il nuovo client
-                    print " - new client accepted"
+                if sock == self.serverSock:			            # Se uno di questi socket è quello del server, significa che un nuovo client si è connesso
+                    clientSock = self.serverSock.accept()[0]    # Accettiamo il nuovo client
+                    print "- new client accepted"
                     self.client_list[clientSock] = Server.Client(clientSock)	# Lo aggiungiamo alle nostre liste
                     self.socket_list.append(clientSock)
                     print '------ connection count: %s ------' % self.getConnectionCount()
                 else:								# Altrimenti, uno dei client ha dati da inviare
                     try:
-                        data = sock.recv(256)		# riceviamo questi dati
-                        if not data: raise			# Se non abbiamo ricevuto dati, alziamo un'eccezione
-
+                        data = sock.recv(256)		# Riceviamo questi dati
+                        if not data: 
+                            raise error.client_error.NoDataException()			# Se non abbiamo ricevuto dati, solleviamo un'eccezione
                         client = self.client_list[sock]
-                        if not client.logged:           # se il client non si è ancora loggato nella rete
-                            #elaboriamo pass/nick/user
-                            if data[:4].lower() == "pass":
-                                if not client.password and not client.nick:
-                                    client.password = data[4:]  # legge password
+                        if not client.logged:       # Se il client non si è ancora loggato nella rete
+                            # Elaboriamo [pass/]nick/user
+                            dataSplit = data.lower().strip().split() # split() suddivide la stringa in una lista d'istruzioni, strip() rimuove il newline finale
+                            if dataSplit[0] == "pass": 
+                                if not client.password and not client.nick:                          
+                                    if irc_regex.getConnectionRegex()['pass'].match(dataSplit[1]):
+                                        client.password = dataSplit[1]
+                                        sock.send('OK\n')
+                                    else:
+                                        sock.send('Il formato della password è illegale\n')
                                 else:
-                                    sock.send(" -E- Password già inviata o inviata dopo un nick ---")                       # ovviamente da mettere secondo lo standard
-                            elif data[:4].lower() == "nick":
+                                    sock.send("-E- Password già inviata o inviata dopo un nick ---\n")   # ovviamente da mettere secondo lo standard
+                            elif dataSplit[0] == "nick":
                                 if not client.nick:
-                                    client.nick = data[4:]      # legge nick
+                                    if irc_regex.getConnectionRegex()['nick'].match(dataSplit[1]):
+                                        client.nick = dataSplit[1]
+                                        sock.send('OK\n')
+                                    else:
+                                        sock.send('Il formato del nick è illegale\n')
                                 else:
-                                    sock.send(" -E- Nick già inviato ---")                                                  # ovviamente da mettere secondo lo standard
-                            elif data[:4].lower() == "user":
-                                if not client.user and (client.nick or client.password):
-                                    # legge e elabora stringa user
+                                    sock.send(" -E- Nick già inviato ---")                              # ovviamente da mettere secondo lo standard
+                            elif dataSplit[0] == "user":
+                                if not client.user and client.nick:
+                                    if len(dataSplit)>4 and irc_regex.getConnectionRegex()['user'].match(dataSplit[1]) and dataSplit[2] == '0' and dataSplit[3] == '*':
+                                        # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
+                                        realname = ' '.join([ segm for segm in dataSplit[4:] ]) # successivamente joiniamo questi segmenti insieme con ' '
+                                        if irc_regex.getConnectionRegex()['realname'].match(realname):
+                                            client.user = dataSplit[1]
+                                            client.realname = realname
+                                            client.logged = True
+                                            client.flags.append(dataSplit[2])
+                                            sock.send('OK\n')
+                                    else:
+                                        sock.send('Il formato dello user è illegale\n')
                                 else:
-                                    sock.send(" -E- User già inviato o non è stato inviato prima nick o password ---")      # ovviamente da mettere secondo lo standard
+                                    sock.send("-E- User già inviato o non è stato inviato prima nick ---\n")      # ovviamente da mettere secondo lo standard
                             else:
-                                sock.send(" -E- Comando non valido ---")       # ovviamente da mettere secondo lo standard
-                        else
+                                sock.send("-E- Comando non valido ---\n")       # ovviamente da mettere secondo lo standard
+                        else:
                             # elaboriamo i comandi normali
-                            print "[%s] %s" % (self.client_list[sock].getID(), data),
+                            print "[%s] %s" % (self.client_list[sock].ID, data),
                             sock.send('Echo:  %s' % data)
-                    except:							# Se non abbiamo ricevuto dati, il client si è sconnesso
-                        print "Client disconnected"
+                    except Exception as e:							# Se non abbiamo ricevuto dati, il client si è sconnesso
+                        print "Client disconnected:", e
                         sock.close()
                         self.socket_list.remove(sock)	# Lo rimuoviamo dalle lista
                         del self.client_list[sock]
