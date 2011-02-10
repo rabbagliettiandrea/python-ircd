@@ -28,9 +28,17 @@ class Server():
             self.nick = None
             self.realName = None
             self.password = None
-            self.flags = []         # Flag attivi per quell'utente
+            self.flags = set()         # Flag attivi per quell'utente
             Server.Client.ID += 1
 
+    #############################################
+    # Classe Channel: gestisce tutte le informazioni su un canale
+    class Channel():
+        def __init__(self, name):
+            self.name = name
+            self.topic = None
+            self.flags = set()
+            self.client_list = []
 
     #############################################
     def __init__(self, host, port):
@@ -39,6 +47,7 @@ class Server():
         self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_list = {}
         self.socket_list = [self.serverSock]
+        self.channel_list = {}
 
     #############################################
     def getConnectionCount(self):
@@ -93,12 +102,18 @@ class Server():
                                 if not client.user and client.nick:
                                     if len(dataSplit)>4 and irc_regex.getConnectionRegex()['user'].match(dataSplit[1]) and (dataSplit[2] in ['0', '4', '8', '12']):
                                         # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
-                                        realname = ' '.join([ segm for segm in dataSplit[4:] ]) # successivamente joiniamo questi segmenti insieme con ' '
+                                        realname = (' '.join([ segm for segm in dataSplit[4:] ])).strip(':') # successivamente joiniamo questi segmenti insieme con ' '
                                         if irc_regex.getConnectionRegex()['realname'].match(realname):
                                             client.user = dataSplit[1]
                                             client.realname = realname
                                             client.logged = True
-                                            client.flags.append(dataSplit[2])
+                                            if dataSplit[2] == '4':
+                                                client.flags.add('w')
+                                            elif dataSplit[2] == '8':
+                                                client.flags.add('i')
+                                            elif dataSplit[2] == '12':
+                                                client.flags.add('w')
+                                                client.flags.add('i')
                                             sock.send('OK, logged in\n')
                                         else:
                                             sock.send('-E- Il formato del realname è illegale\n')
@@ -110,12 +125,25 @@ class Server():
                                 sock.send("-E- Comando non valido\n")       # ovviamente da mettere secondo lo standard
                         else:
                             # elaboriamo i comandi normali
-                            print "-M- [%s] %s" % (self.client_list[sock].ID, data),
+                            print "-M- [%s] %s: %s" % (self.client_list[sock].ID, self.client_list[sock].nick, data),
+                            dataSplit = data.strip().split()
+                            if dataSplit[0].lower() == "join":                # Comando Join: aggiunge un client a un canale, ed eventualmente crea il canale
+                                nomeCanale = dataSplit[1]
+                                if irc_regex.getConnectionRegex()['chanName'].match(nomeCanale):
+	                                if not nomeCanale in channel_list:                    # Crea il canale se non esiste
+	                                    channel_list[nomeCanale] = Channel(nomeCanale)
+                                    if not client in channel_list[nomeCanale].clientList:  # Controlla che il client non sia gia' presente nel canale
+                                        channel_list[nomeCanale].clientList.append(client)
+                                    else
+                                        sock.send("-E- Client gia' collegato in questo canale")
+                                else
+                                    sock.send("-E- Invalid channel name")
+                            if nome in channel_list
                             sock.send('Echo:  %s' % data)
                     except Exception as e:							# Se non abbiamo ricevuto dati, il client si è sconnesso
                         print "-L- Client disconnected:", e
                         sock.close()
-                        self.socket_list.remove(sock)	# Lo rimuoviamo dalle lista
+                        self.socket_list.remove(sock)	# Lo rimuoviamo dalla lista
                         del self.client_list[sock]
                         print '-L- - connection count: %s' % self.getConnectionCount()
 
@@ -135,7 +163,7 @@ class Server():
 
 
 if __name__ == '__main__':
-	print "--- Hardware Upgrade IRC Server project ---"
+    print "--- Hardware Upgrade IRC Server project ---"
 
     if '--listen-outside' in sys.argv:
         srv = Server('', 6969) # Map either localhost and LAN 
