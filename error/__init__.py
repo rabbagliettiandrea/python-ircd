@@ -6,5 +6,4 @@ exceptions
 
 Questo è il package contenente tutte le eccezioni
 
-
 """

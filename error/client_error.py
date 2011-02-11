@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-
-class NoDataException(Exception): # raisata quando il client si disconnette
+#############################################
+# Classe NoDataException: raisata quando il client si disconnette
+class NoDataException(Exception): 
             
     def __str__(self): # invocato automagicamente
         return repr(self)
