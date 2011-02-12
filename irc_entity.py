@@ -28,3 +28,12 @@ class Client():
         self.password = None
         self.flags = set()         # Flag attivi per quell'utente
         Client.ID += 1
+
+    def __str__(self):
+        return "client [%s]" % (self.ID, self.nick)
+
+    def send(msg):
+        try:
+            if self.sock.sendall(msg): raise # se sendall() restituisce None è andato tutto a buon fine
+        except:
+            raise SendException()

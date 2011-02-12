@@ -28,12 +28,11 @@ def main():
         print "-L- Server ended"
         sys.exit(GRACEFULLY)
     except Exception as ex:
-        print "-L- Server aborted due to exception: ", ex
+        print "-L- Server aborted due to exception:", ex
         srv.stop()
         sys.exit(ABEND)
 
-        
+
 #############################################
 # Chiaramente da rimuovere
 if __name__ == '__main__': main()
-        

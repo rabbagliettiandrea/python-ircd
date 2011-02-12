@@ -1,0 +1,1 @@
+# -*- coding: utf-8 -*-# File di utilitàdef log(msg):    print msg
