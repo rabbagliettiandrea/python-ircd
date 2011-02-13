@@ -15,8 +15,8 @@ class Channel(object):
 
     def relay(self, sender, msg):
         for client in self.client_list:
-        	if not client == sender:
-        		client.reply("[" + self.name + "] " + sender.nick + ": " + msg + "\n")
+            if not client == sender:
+                client.reply("[" + self.name + "] " + sender.nick + ": " + msg + "\n")
 
 #############################################
 # Classe Client: gestisce le comunicazioni con un singolo client remoto
@@ -32,7 +32,7 @@ class Client(object):
         self.realName = None
         self.password = None
         self.flags = set()         # Flag attivi per quell'utente
-        self.join_channel_list = []
+        self.joinChannel_list = {}
         Client.ID += 1
 
     def __str__(self):

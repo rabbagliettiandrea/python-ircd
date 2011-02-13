@@ -36,14 +36,13 @@ class Server(object):
         log('connection count: %s' % self.getConnectionCount())
 
     #############################################
-    def disconnectClient(self, client, msg):
+    def disconnectClient(self, client, msg='Quit'):
 
         # Rimuovo il client dai canali 
-        for chan in client.join_channel_list:
-        	chan.client_list.remove(client)
-        	chan.relay(client, "Quitting (Message: " + msg + ")\n")
+        for chan in client.joinChannel_list.values():
+            chan.client_list.remove(client)
+            chan.relay(client, "Quitting (Message: " + msg + ")\n")
 
-        #log("Client disconnected:", e)
         log("Client disconnected (" + msg + ")\n")
         client.sock.close()
 
