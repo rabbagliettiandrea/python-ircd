@@ -1,1 +1,1 @@
-# -*- coding: utf-8 -*-# File di utilitàdef log(msg):    print msg
+# -*- coding: utf-8 -*-debug = Truedef log(msg):    print '-L- %s' % msg    def log_exc(msg, e):    print '-E- %s %s' % (msg, e)    if debug:        import traceback        traceback.print_exc()

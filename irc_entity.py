@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from error import client_error
 
 #############################################
 # Classe Channel: gestisce tutte le informazioni su un canale
@@ -30,10 +31,10 @@ class Client():
         Client.ID += 1
 
     def __str__(self):
-        return "client [%s]" % (self.ID, self.nick)
+        return "client [%s] {nick:%s}" % (self.ID, self.nick)
 
-    def send(msg):
+    def reply(self, msg):
         try:
             if self.sock.sendall(msg): raise # se sendall() restituisce None è andato tutto a buon fine
         except:
-            raise SendException()
+            raise client_error.ReplyException()

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import util
+from util import log
+from util import log_exc
 from server import Server
+
 
 # Return codes:
 ABEND = 1
@@ -16,19 +20,22 @@ def main():
         srv = Server('', 6969) # Map either localhost and LAN 
     else:
         srv = Server('127.0.0.1', 6969) # Map in LAN
-
+    
+    if '--no-debug' in sys.argv:
+        util.debug = False
+    
     try:
-        print '-L- Server started...   '
+        log('Server started...')
         srv.start()
     except KeyboardInterrupt:    # Sollevata quando si preme CTRL+C
         srv.stop()
-        print "-L-Server aborted due to CTRL-C signal"
+        log("Server aborted due to CTRL-C signal")
         sys.exit(USERQUIT)
     except SystemExit: # Viene sollevata alla chiamata di sys.exit()
-        print "-L- Server ended"
+        log("Server ended")
         sys.exit(GRACEFULLY)
     except Exception as ex:
-        print "-L- Server aborted due to exception:", ex
+        log_exc("Server aborted due to exception: ", ex)
         srv.stop()
         sys.exit(ABEND)
 

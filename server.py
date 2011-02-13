@@ -27,36 +27,36 @@ class Server():
     #############################################
     def acceptNewClient(self):
         clientSock = self.serverSock.accept()[0]    # Accettiamo il nuovo client
-        log("-L- new client accepted")
+        log("new client accepted")
         self.client_list[clientSock] = irc_entity.Client(clientSock)	# Lo aggiungiamo alle nostre liste
         self.socket_list.append(clientSock)
-        log('-L- - connection count: %s' % self.getConnectionCount())
+        log('connection count: %s' % self.getConnectionCount())
 
     #############################################
     def notLoggedCommand_unknown(self, client, dataSplit):
-        client.send("-E- Comando non valido\n")       # ovviamente da mettere secondo lo standard
+        client.reply("-E- Comando non valido\n")       # ovviamente da mettere secondo lo standard
 
     #############################################
     def notLoggedCommand_pass(self, client, dataSplit):
-      if not client.password and not client.nick:
-          if irc_regex.connectionRegex['pass'].match(dataSplit[1]):
-              client.password = dataSplit[1]
-              client.send('OK\n')
-          else:
-              client.send('-E- Il formato della password è illegale\n')
-      else:
-          client.send("-E- Password già inviata o inviata dopo un nick\n")   # ovviamente da mettere secondo lo standard
+        if not client.password and not client.nick:
+            if irc_regex.connectionRegex['pass'].match(dataSplit[1]):
+                client.password = dataSplit[1]
+                client.reply('OK\n')
+            else:
+                client.reply('-E- Il formato della password è illegale\n')
+        else:
+            client.reply("-E- Password già inviata o inviata dopo un nick\n")   # ovviamente da mettere secondo lo standard
 
     #############################################
     def notLoggedCommand_nick(self, client, dataSplit):
-      if not client.nick:
-          if irc_regex.connectionRegex['nick'].match(dataSplit[1]):
-              client.nick = dataSplit[1]
-              client.send('OK\n')
-          else:
-              client.send('-E- Il formato del nick è illegale\n')
-      else:
-          client.send("-E- Nick già inviato ---\n")                              # ovviamente da mettere secondo lo standard
+        if not client.nick:
+            if irc_regex.connectionRegex['nick'].match(dataSplit[1]):
+                client.nick = dataSplit[1]
+                client.reply('OK\n')
+            else:
+                client.reply('-E- Il formato del nick è illegale\n')
+        else:
+            client.reply("-E- Nick già inviato ---\n")                              # ovviamente da mettere secondo lo standard
 
     #############################################
     def notLoggedCommand_user(self, client, dataSplit):
@@ -72,13 +72,13 @@ class Server():
                     for Ch in {'4' : 'w', '8' : 'i', '12' : 'wi'}.get(dataSplit[2], ''):
                         client.flags.add(Ch)
 
-                    client.send('OK, logged in\n')
+                    client.reply('OK, logged in\n')
                 else:
-                    client.send('-E- Il formato del realname è illegale\n')
+                    client.reply('-E- Il formato del realname è illegale\n')
             else:
-                client.send('-E- Il formato dello user è illegale\n')
+                client.reply('-E- Il formato dello user è illegale\n')
         else:
-            client.send("-E- User già inviato o non è stato inviato prima nick\n")      # ovviamente da mettere secondo lo standard
+            client.reply("-E- User già inviato o non è stato inviato prima nick\n")      # ovviamente da mettere secondo lo standard
 
     #############################################
     def loggedCommand_unknown(self, client, dataSplit):
@@ -94,35 +94,23 @@ class Server():
             if not client in self.channel_list[chanName].client_list:  # Controlla che il client non sia gia' presente nel canale
                 self.channel_list[chanName].client_list.append(client)
             else:
-                client.send("-E- Client già collegato in questo canale\n")
+                client.reply("-E- Client già collegato in questo canale\n")
         else:
-            client.send("-E- Invalid channel name\n")
+            client.reply("-E- Invalid channel name\n")
 
     #############################################
     def disconnectClient(self, client):
-        #log("-L- Client disconnected:", e)
+        #log("Client disconnected:", e)
+        log("Client disconnected")
         client.sock.close()
 
-        self.socket_list.remove(sock)	# Lo rimuoviamo dalla lista
+        self.socket_list.remove(client.sock)	# Lo rimuoviamo dalla lista
         del self.client_list[client.sock]
-        log('-L- - connection count:', self.getConnectionCount())
-
-    #############################################
-    def handleException(self, e, client):
-        pass # ancora non so
-
-    #############################################
-    def handleClientException(self, e, client):
-        try:
-            e
-        except client_error.NoDataException, client_error.SendException:
-            log(client, e)
-            self.disconnectClient(client)
-
+        log('connection count: %s' % self.getConnectionCount())
 
     #############################################
     def start(self):
-        log("-L- Starting Server")
+        log("Starting Server")
         self.serverSock.bind((self.host, self.port))
         self.serverSock.listen(5)   # Indica quanti client possono al massimo rimanere in coda in attesa dell'accept
 
@@ -134,38 +122,37 @@ class Server():
             for sock in ready_to_read:
                 if sock == self.serverSock:			            # Se uno di questi socket è quello del server, significa che un nuovo client si � connesso
                     self.acceptNewClient()
-                else:								# Altrimenti, uno dei client ha dati da inviare
-                    try:
+                else:
+                    client = self.client_list[sock]								
+                    try:                            # Altrimenti, uno dei client ha dati da inviare
                         data = sock.recv(256)		# Riceviamo questi dati
                         if not data:
-                            raise error.client_error.NoDataException()			# Se non abbiamo ricevuto dati, solleviamo un'eccezione
+                            raise client_error.NoDataException()			# Se non abbiamo ricevuto dati, solleviamo un'eccezione
                         dataSplit = data.lower().strip().split() # split() suddivide la stringa in una lista d'istruzioni, strip() rimuove il newline finale
-
-                        client = self.client_list[sock]
                         if not client.logged:       # Se il client non si è ancora loggato nella rete
                             # Elaboriamo [pass/]nick/user
                             selector = getattr(self, 'notLoggedCommand_' + dataSplit[0], self.notLoggedCommand_unknown)
-                            selector(sock, client, dataSplit)
+                            selector(client, dataSplit)
                         else:
                             # elaboriamo i comandi normali
-                            log("-M- [%s] %s: %s" % (self.client_list[sock].ID, self.client_list[sock].nick, data),)
-                            Selector = getattr(self, 'loggedCommand_' + dataSplit[0], self.loggedCommand_unknown)
-                            Selector(sock, client, dataSplit)
+                            log("|M| %s: %s" % (client, data.strip()))
+                            selector = getattr(self, 'loggedCommand_' + dataSplit[0], self.loggedCommand_unknown)
+                            selector(client, dataSplit)
                     except client_error.ClientException as e:
-                        self.handleClientException(e, sock)
+                        client_error.handleClientException(self, e, client)
                     except Exception as e:
-                        self.handleException(e, sock)
+                        self.handleException(e)
 
     #############################################
     def stop(self):
-        log("-L- Stopping Server")
+        log("Stopping Server")
         # chiudere tutte le socket
         for sock in self.socket_list:
             sock.close()
 
     #############################################
     def restart(self):
-        log("-L- Restarting Server")
+        log("Restarting Server")
         self.stop()
         self.__init__(self.host, self.port)
         self.start()
