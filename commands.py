@@ -38,7 +38,6 @@ def command_user(client, dataSplit, server):
     if not client.user and client.nick:
         if len(dataSplit) > 4 and irc_regex.connectionRegex['user'].match(dataSplit[1]) and (dataSplit[2] in ('0', '4', '8', '12')):
             # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
-            #realname = (' '.join(segm for segm in dataSplit[4 : ])).strip(':') # successivamente joiniamo questi segmenti insieme con ' '
             realname = (string.join(dataSplit[4 : ], ' ')).strip(':') # successivamente joiniamo questi segmenti insieme con ' '
 
             if irc_regex.connectionRegex['realname'].match(realname):
@@ -46,8 +45,8 @@ def command_user(client, dataSplit, server):
                 client.realname = realname
                 client.logged = True
 
-                for Ch in {'4' : 'w', '8' : 'i', '12' : 'wi'}.get(dataSplit[2], ''):
-                    client.flags.add(Ch)
+                for flag in {'4' : 'w', '8' : 'i', '12' : 'wi'}.get(dataSplit[2], ''):
+                    client.flags.add(flag)
 
                 client.reply('OK, logged in\n')
             else:
@@ -66,7 +65,7 @@ def command_join(client, dataSplit, server):
 
         if not client in server.channel_list[chanName].client_list:		# Controlla che il client non sia gia' presente nel canale
             server.channel_list[chanName].client_list.append(client)	# Aggiungo il client nella lista di quel canale
-            client.join_channel_list[chanName] = server.channel_list[chanName] # Aggiungo il canale alla lista di quel client
+            client.joinChannel_list[chanName] = server.channel_list[chanName] # Aggiungo il canale alla lista di quel client
             client.reply("Ok, joined channel " + chanName + "\n")
         else:
             client.reply("-E- Client già collegato in questo canale\n")
@@ -75,17 +74,18 @@ def command_join(client, dataSplit, server):
 
 #############################################
 def command_privmsg(client, dataSplit, server):
-    chanName = dataSplit[1]						# ottengo il nome del canale
-    if chanName in client.join_channel_list.keys():	# se esiste il canale
-        client.join_channel_list[chanName].relay(client, string.join(dataSplit[2:], ' ').strip(':') )	# chiamo relay per inviare il messaggio a tutti i client del canale
+    #TODO limitare la lunghezza del messaggio inviato
+    chanName = dataSplit[1]
+    if chanName in client.joinChannel_list.keys():
+        server.channel_list[chanName].relay(client, string.join(dataSplit[2:], ' ').strip(':') )
     else:
         client.reply("-E- Invalid channel name\n")
 
 #############################################
 def command_quit(client, dataSplit, server):
     #Avviso tutti i canali a cui è collegato il client che il client si scollega
-    quitMsg = "none"
-    if len(dataSplit) >= 2:
+    quitMsg = "none"        # Non si può indicare None perchè, se il client non indica un messaggio, succede "TypeError: cannot concatenate 'str' and 'NoneType' objects"
+    if len(dataSplit) > 1:
         quitMsg = (string.join(dataSplit[1:], ' ')).strip(':')
     # Scollego il client
     server.disconnectClient(client, quitMsg)

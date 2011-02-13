@@ -9,7 +9,7 @@ connectionRegex = {
 
         # nick minlung = 1, maxlung = 10
         # non può iniziare con un numero ma solo con caratteri alfabetici opp con ^ _
-        'nick'  :   re.compile('^[\^A-Za-z_-]{1}[A-Za-z0-9_-]{0,9}$'),
+        'nick'  :   re.compile('^[\b\^A-Za-z_-]{1}[A-Za-z0-9_-]{0,9}$'),
 
         # user minlung = 1, maxlung = 20
         # e può contenere una qualsiasi sequenza alfanumerica più - e _
