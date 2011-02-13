@@ -25,7 +25,7 @@ def command_pass(client, dataSplit, server):
 #############################################
 def command_nick(client, dataSplit, server):
     if not client.nick:
-        if irc_regex.connectionRegex['nick'].match(dataSplit[1]):
+        if irc_regex.connectionRegex['nick'].match(dataSplit[1]) and len(dataSplit) == 2:
             client.nick = dataSplit[1]
             client.reply('OK\n')
         else:
@@ -66,7 +66,7 @@ def command_join(client, dataSplit, server):
 
         if not client in server.channel_list[chanName].client_list:		# Controlla che il client non sia gia' presente nel canale
             server.channel_list[chanName].client_list.append(client)	# Aggiungo il client nella lista di quel canale
-            client.join_channel_list.append(server.channel_list[chanName]) # Aggiungo il canale alla lista di quel client
+            client.join_channel_list[chanName] = server.channel_list[chanName] # Aggiungo il canale alla lista di quel client
             client.reply("Ok, joined channel " + chanName + "\n")
         else:
             client.reply("-E- Client già collegato in questo canale\n")
@@ -74,10 +74,10 @@ def command_join(client, dataSplit, server):
         client.reply("-E- Invalid channel name\n")
 
 #############################################
-def command_msg(client, dataSplit, server):
-    chanName = dataSplit[1]
-    if chanName in server.channel_list:
-        server.channel_list[chanName].relay(client, string.join(dataSplit[2:], ' ').strip(':') )
+def command_privmsg(client, dataSplit, server):
+    chanName = dataSplit[1]						# ottengo il nome del canale
+    if chanName in client.join_channel_list.keys():	# se esiste il canale
+        client.join_channel_list[chanName].relay(client, string.join(dataSplit[2:], ' ').strip(':') )	# chiamo relay per inviare il messaggio a tutti i client del canale
     else:
         client.reply("-E- Invalid channel name\n")
 
@@ -86,7 +86,7 @@ def command_quit(client, dataSplit, server):
     #Avviso tutti i canali a cui è collegato il client che il client si scollega
     quitMsg = "none"
     if len(dataSplit) >= 2:
-        quitMsg = (string.join(dataSplit[2:], ' ')).strip(':')
+        quitMsg = (string.join(dataSplit[1:], ' ')).strip(':')
     # Scollego il client
     server.disconnectClient(client, quitMsg)
 

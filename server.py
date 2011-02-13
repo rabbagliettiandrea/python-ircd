@@ -39,7 +39,7 @@ class Server(object):
     def disconnectClient(self, client, msg):
 
         # Rimuovo il client dai canali 
-        for chan in client.join_channel_list:
+        for chan in client.join_channel_list.values():
         	chan.client_list.remove(client)
         	chan.relay(client, "Quitting (Message: " + msg + ")\n")
 

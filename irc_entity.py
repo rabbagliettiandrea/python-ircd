@@ -32,7 +32,7 @@ class Client(object):
         self.realName = None
         self.password = None
         self.flags = set()         # Flag attivi per quell'utente
-        self.join_channel_list = []
+        self.join_channel_list = {}
         Client.ID += 1
 
     def __str__(self):
