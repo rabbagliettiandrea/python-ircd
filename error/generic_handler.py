@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from util import import log_exc
+from util import log_exc
 
 #############################################
-def handleException(self, e):
+def handleException(e):
     log_exc('Exception:', e)

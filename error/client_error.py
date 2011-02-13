@@ -29,3 +29,4 @@ def handleClientException(srv, e, client):
         srv.disconnectClient(client)
     except:
         log_exc('ClientException: %s' % client, e)
+
