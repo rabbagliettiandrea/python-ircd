@@ -21,6 +21,10 @@ connectionRegex = {
 
         # channel name minlung = 1, maxlung = 20
         # any octet except NUL, BELL, CR, LF, " ", "," and ":"
-        'chanName' : re.compile('^\#[^\b,:]{1,20}$')
+        'chanName'  :    re.compile('^\#[^\b,:]{1,20}$'),
+        
+        # privmsg minlung = 1, maxlung = 200
+        # deve iniziare necessariamente con i :
+        'privmsg'  :   re.compile('^:.{1,200}$'),
 }
 

@@ -4,7 +4,7 @@ import select
 import socket
 
 import irc_entity
-import commands
+import irc_command
 
 from util import log
 from error import client_error
@@ -52,10 +52,10 @@ class Server(object):
 
     #############################################
     def start(self):
-        log("Starting Server")
         self.serverSock.bind((self.host, self.port))
-        self.serverSock.listen(5)   # Indica quanti client possono al massimo rimanere in coda in attesa dell'accept
-
+        self.serverSock.listen(5)   # Indica quanti client possono al massimo rimanere in coda in attesa dell'accept (backlog)
+        log('Server started')
+        
         while True:                 # ciclo di lettura e scrittura
             # Con la select otteniamo la lista dei client che hanno dei dati da inviare (ready_to_read),
             # che sono pronti a ricevere (ready_to_write), e quelli in errore (in_error)
@@ -70,9 +70,9 @@ class Server(object):
                         data = sock.recv(256)		# Riceviamo questi dati
                         if not data:
                             raise client_error.NoDataException()            # Se non abbiamo ricevuto dati, solleviamo un'eccezione
-                        dataSplit = data.lower().strip().split()            # split() suddivide la stringa in una lista d'istruzioni, strip() rimuove il newline finale
+                        dataSplit = data.lower().strip().rsplit()            # split() suddivide la stringa in una lista d'istruzioni, strip() rimuove il newline finale
                         if dataSplit:                                       # Se ci sono dati (se un client invia solo '\n', dataSplit è vuota)
-                            commands.get(dataSplit[0])(client, dataSplit, self)
+                            irc_command.get(dataSplit[0])(client, dataSplit, self)
                             log("|M| %s: %s" % (client, data.strip()))
                     except client_error.ClientException as e:
                         client_error.handleClientException(self, e, client)

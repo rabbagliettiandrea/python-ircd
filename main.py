@@ -6,15 +6,15 @@ from util import log
 from util import log_exc
 from server import Server
 
-
 # Return codes:
 ABEND = 1
 GRACEFULLY = 0
 USERQUIT = 2
 
+
 #############################################
 def main():
-    print "--- Hardware Upgrade IRC Server project ---"
+    print "--- Yet another IRC Server project ---"
 
     if '--listen-outside' in sys.argv:
         srv = Server('', 6969) # Map either localhost and LAN 
@@ -25,7 +25,7 @@ def main():
         util.debug = False
     
     try:
-        log('Server started...')
+        log('Starting server...')
         srv.start()
     except KeyboardInterrupt:    # Sollevata quando si preme CTRL+C
         srv.stop()

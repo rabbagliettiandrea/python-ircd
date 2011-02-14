@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import string
+
 import irc_regex
 import irc_entity
-
-import string
 
 # Le funzioni per gestire i comandi richiesti dal client
 
@@ -14,7 +14,7 @@ def command_unknown(client, dataSplit, server):
 #############################################
 def command_pass(client, dataSplit, server):
     if not client.password and not client.nick:
-        if irc_regex.connectionRegex['pass'].match(dataSplit[1]):
+        if len(dataSplit)==2 and irc_regex.connectionRegex['pass'].match(dataSplit[1]):
             client.password = dataSplit[1]
             client.reply('OK\n')
         else:
@@ -36,7 +36,7 @@ def command_nick(client, dataSplit, server):
 #############################################
 def command_user(client, dataSplit, server):
     if not client.user and client.nick:
-        if len(dataSplit) > 4 and irc_regex.connectionRegex['user'].match(dataSplit[1]) and (dataSplit[2] in ('0', '4', '8', '12')):
+        if len(dataSplit) > 4 and irc_regex.connectionRegex['user'].match(dataSplit[1]) and (dataSplit[2] in ('0', '4', '8', '12')) and dataSplit[3] == '*':
             # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
             realname = (string.join(dataSplit[4 : ], ' ')).strip(':') # successivamente joiniamo questi segmenti insieme con ' '
 
@@ -74,17 +74,19 @@ def command_join(client, dataSplit, server):
 
 #############################################
 def command_privmsg(client, dataSplit, server):
-    #TODO limitare la lunghezza del messaggio inviato
     chanName = dataSplit[1]
     if chanName in client.joinChannel_list.keys():
-        server.channel_list[chanName].relay(client, string.join(dataSplit[2:], ' ').strip(':') )
+        if irc_regex.connectionRegex['privmsg'].match(dataSplit[2]):
+            server.channel_list[chanName].relay(client, string.join(dataSplit[2:], ' ').strip(':') )
+        else:
+            client.reply("-E- Invalid privmsg syntax")
     else:
         client.reply("-E- Invalid channel name\n")
 
 #############################################
 def command_quit(client, dataSplit, server):
-    #Avviso tutti i canali a cui è collegato il client che il client si scollega
-    quitMsg = "none"        # Non si può indicare None perchè, se il client non indica un messaggio, succede "TypeError: cannot concatenate 'str' and 'NoneType' objects"
+    # Avviso tutti i canali a cui è collegato il client che il client si scollega
+    quitMsg = "Quit"
     if len(dataSplit) > 1:
         quitMsg = (string.join(dataSplit[1:], ' ')).strip(':')
     # Scollego il client
