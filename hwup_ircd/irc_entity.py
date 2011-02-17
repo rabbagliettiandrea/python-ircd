@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from error import client_error
+from hwup_ircd.error import client_error
 
 #############################################
 # Classe Channel: gestisce tutte le informazioni su un canale

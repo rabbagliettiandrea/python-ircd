@@ -2,8 +2,8 @@
 
 import string
 
-import irc_regex
-import irc_entity
+from hwup_ircd import irc_regex
+from hwup_ircd import irc_entity
 
 # Le funzioni per gestire i comandi richiesti dal client
 

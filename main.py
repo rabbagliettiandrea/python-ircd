@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import util
-from util import log
-from util import log_exc
-from server import Server
+
+from hwup_ircd import util
+from hwup_ircd.util import log
+from hwup_ircd.util import log_exc
+from hwup_ircd.server import Server
 
 # Return codes:
 ABEND = 1
@@ -41,5 +42,5 @@ def main():
 
 
 #############################################
-# Chiaramente da rimuovere
+# Go!
 if __name__ == '__main__': main()

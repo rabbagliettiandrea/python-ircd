@@ -3,12 +3,12 @@
 import select
 import socket
 
-import irc_entity
-import irc_command
+from hwup_ircd import irc_entity
+from hwup_ircd import irc_command
 
-from util import log
-from error import client_error
-from error import generic_handler
+from hwup_ircd.util import log
+from hwup_ircd.error import client_error
+from hwup_ircd.error import generic_handler
 
 
 class Server(object):
