@@ -8,11 +8,11 @@ import irc_entity
 # Le funzioni per gestire i comandi richiesti dal client
 
 #############################################
-def command_unknown(client, dataSplit, server):
+def command_unknown(client, dataSplit, server=None):
     client.reply("-E- Comando non valido\n")       # ovviamente da mettere secondo lo standard
 
 #############################################
-def command_pass(client, dataSplit, server):
+def command_pass(client, dataSplit, server=None):
     if not client.password and not client.nick:
         if len(dataSplit)==2 and irc_regex.connectionRegex['pass'].match(dataSplit[1]):
             client.password = dataSplit[1]
@@ -23,7 +23,7 @@ def command_pass(client, dataSplit, server):
         client.reply("-E- Password già inviata o inviata dopo un nick\n")
 
 #############################################
-def command_nick(client, dataSplit, server):
+def command_nick(client, dataSplit, server=None):
     if not client.nick:
         if irc_regex.connectionRegex['nick'].match(dataSplit[1]) and len(dataSplit) == 2:
             client.nick = dataSplit[1]
@@ -34,7 +34,7 @@ def command_nick(client, dataSplit, server):
         client.reply("-E- Nick già inviato ---\n")
 
 #############################################
-def command_user(client, dataSplit, server):
+def command_user(client, dataSplit, server=None):
     if not client.user and client.nick:
         if len(dataSplit) > 4 and irc_regex.connectionRegex['user'].match(dataSplit[1]) and (dataSplit[2] in ('0', '4', '8', '12')) and dataSplit[3] == '*':
             # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
