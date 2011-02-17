@@ -12,7 +12,6 @@ ABEND = 1
 GRACEFULLY = 0
 USERQUIT = 2
 
-
 #############################################
 def main():
     print "--- Yet another IRC Server project ---"
@@ -40,7 +39,5 @@ def main():
         srv.stop()
         sys.exit(ABEND)
 
-
 #############################################
-# Go!
 if __name__ == '__main__': main()

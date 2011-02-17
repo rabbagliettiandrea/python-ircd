@@ -2,8 +2,8 @@
 
 """ 
 
-exceptions
+error
 
-Questo è il package contenente tutte le eccezioni
+Questo è il package contenente la gestione degli errori e le eccezioni
 
 """

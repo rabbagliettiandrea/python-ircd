@@ -12,13 +12,12 @@ from hwup_ircd.error import generic_handler
 
 
 class Server(object):
-
+    
     #############################################
     def __init__(self, host, port):
         self.host = host
         self.port = port
         self.serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)             # Per far in modo che il s.o. liberi subito la porta quando il programma termina
         self.client_list = {}
         self.socket_list = [self.serverSock]
         self.channel_list = {}
@@ -37,13 +36,12 @@ class Server(object):
 
     #############################################
     def disconnectClient(self, client, msg='Quit'):
-
         # Rimuovo il client dai canali 
         for chan in client.joinChannel_list.values():
             chan.client_list.remove(client)
-            chan.relay(client, "Quitting (Message: " + msg + ")\n")
+            chan.relay(client, "Quitting (Message: " + msg + ")")
 
-        log("Client disconnected (" + msg + ")\n")
+        log('Client disconnected (' + msg + ')')
         client.sock.close()
 
         self.socket_list.remove(client.sock)	# Lo rimuoviamo dalla lista
@@ -75,7 +73,7 @@ class Server(object):
                             irc_command.get(dataSplit[0])(client, dataSplit, self)
                             log("|M| %s: %s" % (client, data.strip()))
                     except client_error.ClientException as e:
-                        client_error.handleClientException(self, e, client)
+                        client_error.handleClientException(e, client)
                     except Exception as e:
                         generic_handler.handleException(e)
 

@@ -2,8 +2,8 @@
 
 """ 
 
-test
+hwup_ircd
 
-Questo è il package contenente tutti i test
+root package
 
 """

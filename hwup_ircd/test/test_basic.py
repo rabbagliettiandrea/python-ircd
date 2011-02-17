@@ -9,21 +9,18 @@ from hwup_ircd.test import mock_classes
 #############################################
 class Test_IRC_command(unittest.TestCase):
     
-    #############################################
     def setUp(self): # viene chiamato prima di tutti (non di ognuno) i metodi di test
         self.client = mock_classes.Client()
         self.server = mock_classes.Server()
     
-    #############################################
     def tearDown(self): # viene chiamato dopo ogni i metodi di test
         self.client.__init__()
         self.server.__init__()
 
-    #############################################
     def test_OK1(self): # test su una simulazione di traffico corretto client-server
-        traffic = [ (irc_command.command_pass, 'pass provapwd', 'OK\n'), 
-                    (irc_command.command_nick, 'nick provanick', 'OK\n'),  
-                    (irc_command.command_user, 'user guest 0 * :Nome Cognome', 'OK, logged in\n'), 
+        traffic = [ (irc_command.command_pass, 'pass provapwd', 'OK'), 
+                    (irc_command.command_nick, 'nick provanick', 'OK'),  
+                    (irc_command.command_user, 'user guest 0 * :Nome Cognome', 'OK, logged in'), 
                     (irc_command.command_join, 'join #canale', "Ok, joined channel") ]
         for tuple in traffic:
             dataSplit = tuple[1].lower().strip().rsplit()

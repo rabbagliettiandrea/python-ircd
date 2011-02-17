@@ -13,10 +13,12 @@ class Channel(object):
         self.client_list = []
         self.owner = None
 
+
     def relay(self, sender, msg):
         for client in self.client_list:
             if not client == sender:
-                client.reply("[" + self.name + "] " + sender.nick + ": " + msg + "\n")
+                client.reply("[" + self.name + "] " + sender.nick + ": " + msg)
+
 
 #############################################
 # Classe Client: gestisce le comunicazioni con un singolo client remoto
@@ -29,7 +31,7 @@ class Client(object):
         self.logged = False     # Fin quando il client non invia la sequenza [pass->]nick->user
         self.user = None
         self.nick = None
-        self.realName = None
+        self.realname = None
         self.password = None
         self.flags = set()         # Flag attivi per quell'utente
         self.joinChannel_list = {}
@@ -41,9 +43,9 @@ class Client(object):
         else:
             return "client [%s] {nick: %s, not logged}" % (self.ID, self.nick)
 
-    def reply(self, msg):
+    def reply(self, msg, end='\n'):
         try:
-            if self.sock.sendall(msg): raise # se sendall() restituisce None è andato tutto a buon fine
+            if self.sock.sendall(msg + end): raise # se sendall() restituisce None è andato tutto a buon fine
         except:
             raise client_error.ReplyException()
 

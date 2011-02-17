@@ -11,7 +11,7 @@ class Client(object):   # classe mock che emula il comportamento/attributi della
         self.sock = None
         self.logged = False     # Fin quando il client non invia la sequenza [pass->]nick->user
         self.user = None
-        self.realName = None
+        self.realname = None
         self.flags = set()         # Flag attivi per quell'utente
         self.joinChannel_list = {}
         
@@ -21,7 +21,6 @@ class Client(object):   # classe mock che emula il comportamento/attributi della
 
 #############################################
 class Server(object):   # classe mock che emula il comportamento/attributi della classe reale
-
     def __init__(self,):
         self.client_list = {}
         self.socket_list = []
