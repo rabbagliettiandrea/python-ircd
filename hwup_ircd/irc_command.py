@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from hwup_ircd import irc_regex
+from hwup_ircd.const import irc_regex
 from hwup_ircd import irc_entity
 
 # Funzioni per gestire i comandi richiesti dal client
@@ -23,7 +23,7 @@ def command_pass(client, dataSplit, server=None):
 #############################################
 def command_nick(client, dataSplit, server=None):
     if not client.nick:
-        if irc_regex.connectionRegex['nick'].match(dataSplit[1]) and len(dataSplit) == 2:
+        if len(dataSplit) == 2 and irc_regex.connectionRegex['nick'].match(dataSplit[1]):
             client.nick = dataSplit[1]
             client.reply('OK')
         else:
@@ -57,7 +57,7 @@ def command_user(client, dataSplit, server=None):
 #############################################
 def command_join(client, dataSplit, server):
     chanName = dataSplit[1]
-    if irc_regex.connectionRegex['chanName'].match(chanName):
+    if len(dataSplit) == 2 and irc_regex.connectionRegex['chanName'].match(chanName):
         if not chanName in server.channel_list:                   		# Crea il canale se non esiste
             server.channel_list[chanName] = irc_entity.Channel(chanName)
 
