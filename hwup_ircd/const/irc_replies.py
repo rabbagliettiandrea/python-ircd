@@ -5,16 +5,17 @@
 #
 # Esempio di utilizzo:
 #
-#	print 'RPL_WELCOME:', replies['RPL_WELCOME'][1]('provanick','provauser','provahost')
+#	print 'RPL_WELCOME:', dict['RPL_WELCOME'][1]('provanick','provauser','provahost')
 #	stamperà:
 #	"RPL_WELCOME: Welcome to the Internet Relay Network provanick!provauser@provahost"
 
-replies = {
+dict = {
 	'RPL_WELCOME' : ('001', lambda nick, user, host: "Welcome to the Internet Relay Network %s!%s@%s" % (nick, user, host)),
 	'RPL_YOURHOST' : ('002', lambda servername, ver: "Your host is %s, running version %s" % (servername, ver)),
 	'RPL_CREATED' : ('003', lambda date: "This server was created %s" % (date)),
 	'RPL_MYINFO' : ('004', lambda servername, version, available_user_modes, available_channel_modes: "%s %s %s %s"  % (servername, version, available_user_modes, available_channel_modes)),
 	'RPL_BOUNCE' : ('005', lambda server_name, port_number: "Try server %s, port %s"  % (server_name, port_number)),
+	
 	'RPL_USERHOST' : ('302', lambda reply: ":*1%s *( " " %s )" % (reply, reply)),
 	'RPL_ISON' : ('303', lambda nick: ":*1%s *( " " %s )"  % (nick, nick)),
 	'RPL_AWAY' : ('301', lambda nick, away_message: "%s :%s" % (nick, away_message)),
@@ -92,6 +93,7 @@ replies = {
 	'RPL_ADMINLOC2' : ('258', lambda admin_info: ":%s" % (admin_info)),
 	'RPL_ADMINEMAIL' : ('259', lambda admin_info: ":%s"  % (admin_info)),
 	'RPL_TRYAGAIN' : ('263', lambda command: "%s :Please wait a while and try again."  % (command)),
+	
 	'ERR_NOSUCHNICK' : ('401', lambda nickname: "%s :No such nick/channel"  % (nickname)),
 	'ERR_NOSUCHSERVER' : ('402', lambda server_name: "%s :No such server"  % (server_name)),
 	'ERR_NOSUCHCHANNEL' : ('403', lambda channel_name: "%s :No such channel"  % (channel_name)),

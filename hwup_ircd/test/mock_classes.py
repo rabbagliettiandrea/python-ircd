@@ -9,7 +9,7 @@ class Client(object):   # classe mock che emula il comportamento/attributi della
         self.reply_output = None
         self.ID = 0
         self.sock = None
-        self.logged = False     # Fin quando il client non invia la sequenza [pass->]nick->user
+        self.registered = False     # Fin quando il client non invia la sequenza [pass->]nick->user
         self.user = None
         self.realname = None
         self.flags = set()         # Flag attivi per quell'utente
