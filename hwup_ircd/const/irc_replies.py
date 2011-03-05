@@ -3,14 +3,14 @@
 # Dizionario generato automaticamente tramite un parser dall'RFC ufficiale
 # associa a chiave RPL_something il valore di una tupla formata da ( 'valore numerico', 'funzione per la stampa del messaggio' )
 #
-# Esempio di utilizzo:
+# Esempio di utilsizzo:
 #
 #	print 'RPL_WELCOME:', dict['RPL_WELCOME'][1]('provanick','provauser','provahost')
 #	stamperà:
 #	"RPL_WELCOME: Welcome to the Internet Relay Network provanick!provauser@provahost"
 
 dict = {
-	'RPL_WELCOME' : ('001', lambda nick, user, host: "Welcome to the Internet Relay Network %s!%s@%s" % (nick, user, host)),
+	'RPL_WELCOME' : ('001', lambda ident: "Welcome to the Internet Relay Network %s" % (ident)),
 	'RPL_YOURHOST' : ('002', lambda servername, ver: "Your host is %s, running version %s" % (servername, ver)),
 	'RPL_CREATED' : ('003', lambda date: "This server was created %s" % (date)),
 	'RPL_MYINFO' : ('004', lambda servername, version, available_user_modes, available_channel_modes: "%s %s %s %s"  % (servername, version, available_user_modes, available_channel_modes)),
@@ -44,7 +44,7 @@ dict = {
 	'RPL_VERSION' : ('351', lambda version, debuglevel, server, comments: "%s.%s %s :%s" % (version, debuglevel, server, comments)),
 	'RPL_WHOREPLY' : ('352', lambda channel, user, host, server, nick, hopcount, real_name: """%s %s %s %s %s ( "H" / "G" > ["*"] [ ( "@" / "+" ) ] :%s %s""" % (channel, user, host, server, nick, hopcount, real_name)),
 	'RPL_ENDOFWHO' : ('315', lambda name: "%s :End of WHO list"  % (name)),
-	'RPL_NAMREPLY' : ('353', lambda channel, nick: """( "=" / "*" / "@" ) %s :[ "@" / "+" ] %s *( " " [ "@" / "+" ] %s )""" % (channel, nick, nick)),
+	'RPL_NAMREPLY' : ('353', lambda scope_flag, channel, nicklist: "%s %s :%s" % (scope_flag, channel, nicklist)),
 	'RPL_ENDOFNAMES' : ('366', lambda channel: "%s :End of NAMES list"  % (channel)),
 	'RPL_LINKS' : ('364', lambda mask, server, hopcount, server_info: "%s %s :%s %s" % (mask, server, hopcount, server_info)),
 	'RPL_ENDOFLINKS' : ('365', lambda mask: "%s :End of LINKS list"  % (mask)),

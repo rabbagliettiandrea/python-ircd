@@ -17,7 +17,7 @@ connectionRegex = {
 
         # realname minlung = 1, maxlung = 40
         # e può contenere solo alfabetici e spazi
-        'realname'  :   re.compile('^([A-Za-z\s]+){1,40}$'),
+        'realname'  :   re.compile('^([\\\\A-Za-z0-9-_\s]+){1,40}$'),
 
         # channel name minlung = 1, maxlung = 20
         # any octet except NUL, BELL, CR, LF, " ", "," and ":"

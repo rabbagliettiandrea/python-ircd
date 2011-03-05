@@ -10,10 +10,10 @@ class Client(object):   # classe mock che emula il comportamento/attributi della
         self.ID = 0
         self.sock = None
         self.registered = False     # Fin quando il client non invia la sequenza [pass->]nick->user
-        self.user = None
+        self.username = None
         self.realname = None
         self.flags = set()         # Flag attivi per quell'utente
-        self.joinChannel_list = {}
+        self.channel_joined_list = {}
         
     def reply(self, reply_msg):
         self.reply_output = reply_msg

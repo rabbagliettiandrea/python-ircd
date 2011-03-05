@@ -4,10 +4,11 @@ import sys
 
 from argparse import ArgumentParser
 
-from hwup_ircd import util
-from hwup_ircd.util import print_log
-from hwup_ircd.util import print_exc
+from hwup_ircd import utils
+from hwup_ircd.utils import print_log
+from hwup_ircd.utils import print_exc
 from hwup_ircd.server import Server
+import argparse
 
 # Return codes:
 GRACEFULLY = 0
@@ -20,18 +21,22 @@ SRV_NAME = "Yet another IRC Server project"
 #############################################
 def main():
     arg_parser = ArgumentParser(description=SRV_NAME)
-    arg_parser.add_argument('--no-debug', action='store_false', dest='debug',
-                            default='True', help='Disable verbose error message')
+    arg_parser.add_argument('--debug', action='store_true', dest='debug',
+                            default='False', help='Set on the print of verbose error message (default: off)')
     arg_parser.add_argument('--listen-outside', action='store_const', dest='hostaddr', 
                             const='', default='127.0.0.1', help='Listen outside localhost')
+    arg_parser.add_argument('-P', '--port', dest='port', default=6667, type=int,
+                            help='Listen to a different port (default: 6667)')
+    
     arg_results = arg_parser.parse_args()
+    print arg_results
     
-    util.DEBUG = arg_results.debug
-    
+    utils.DEBUG = arg_results.debug
+
     print("--- %s ---" % SRV_NAME)
     print_log('Starting server...')
     
-    srv = Server(arg_results.hostaddr, 6969)
+    srv = Server(arg_results.hostaddr, arg_results.port)
     
     try:
         srv.start()
