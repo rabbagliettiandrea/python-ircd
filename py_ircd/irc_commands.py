@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from hwup_ircd.const import irc_regex
-from hwup_ircd.channel import Channel
-from hwup_ircd.const import irc_replies
-from hwup_ircd.utils import print_warn
+from py_ircd.const import irc_regex
+from py_ircd.channel import Channel
+from py_ircd.const import irc_replies
+from py_ircd.utils import print_warn
 
 # Funzioni per gestire i comandi richiesti dal client
 

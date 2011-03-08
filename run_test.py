@@ -3,12 +3,9 @@
 import platform
 import unittest
 
-from hwup_ircd.test import test_basic
+from py_ircd.test.test_mock_client import MockClientTest
 
-#############################################
+
 if __name__ == '__main__':    
-    if platform.python_version_tuple() >= ['2', '7', '0']:
-        suite = unittest.TestLoader().loadTestsFromTestCase(test_basic.Test_IRC_command)
+        suite = unittest.TestLoader().loadTestsFromTestCase(MockClientTest)
         unittest.TextTestRunner(verbosity=2).run(suite)
-    else:
-        print('Needed Python version >=2.7')

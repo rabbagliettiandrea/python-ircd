@@ -2,7 +2,7 @@
 
 """ 
 
-hwup_ircd
+py_ircd
 
 root package
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from hwup_ircd.error import client_errors
-from hwup_ircd.utils import print_replyToClient
+from py_ircd.error import client_errors
+from py_ircd.utils import print_replyToClient
 
 #############################################
 # Classe Channel: gestisce tutte le informazioni su un canale
@@ -30,8 +30,8 @@ class Channel(object):
 
     def nicklist_to_string(self):
         nicklist = []
-        for client in self.client_list:
-            nicklist.append(str(self.client_list[client]))
+        for client_property in self.client_list.values():
+            nicklist.append(str(client_property))
         return ' '.join(nicklist)
     
     def relay(self, sender, data):

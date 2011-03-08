@@ -2,12 +2,13 @@
 
 import unittest
 
-from hwup_ircd import irc_commands
-from hwup_ircd.test import mock_classes
-
+from py_ircd.const import constants
+from py_ircd import utils
 
 #############################################
 class Test_IRC_command(unittest.TestCase):
+    
+
     
     def setUp(self): # viene chiamato prima di tutti (non di ognuno) i metodi di test
         self.client = mock_classes.Client()

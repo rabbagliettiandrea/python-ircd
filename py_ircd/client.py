@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from hwup_ircd.const import irc_replies
+from py_ircd.const import irc_replies
 
 
 #############################################
