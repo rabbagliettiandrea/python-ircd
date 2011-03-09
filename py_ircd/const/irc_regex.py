@@ -23,8 +23,7 @@ connectionRegex = {
         # any octet except NUL, BELL, CR, LF, " ", "," and ":"
         'chanName'  :    re.compile('^\#[^\s,:]{1,20}$'),
         
-        # privmsg minlung = 1, maxlung = 200
-        # deve iniziare necessariamente con i :
-        'privmsg'  :   re.compile('^:.{1,200}$'),
+        # privmsg deve iniziare necessariamente con i :
+        'privmsg'  :   re.compile('^.+$')
 }
 

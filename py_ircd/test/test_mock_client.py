@@ -30,7 +30,7 @@ class MockClientTest(unittest.TestCase):
                              nick nickDiProva\n\
                              user guest 0 * :Nome\n\
                              join #chanDiProva\n')
-        print self.client.recv(1024)
+        #print self.client.recv(1024)
         
         
     

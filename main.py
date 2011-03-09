@@ -9,7 +9,6 @@ from py_ircd.utils import print_log
 from py_ircd.utils import print_exc
 from py_ircd.server import Server
 from py_ircd.const import constants
-import argparse
 
 
 #############################################

@@ -43,7 +43,7 @@ def command_user(client, commandSplit, server=None):
     if not client.username and client.nick:  
         if len(commandSplit) > 4 and irc_regex.connectionRegex['user'].match(commandSplit[1]):
             # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
-            realname = ' '.join(commandSplit[4 : ]).strip(':') # successivamente joiniamo questi segmenti insieme con ' '
+            realname = commandSplit[4] # successivamente joiniamo questi segmenti insieme con ' '
 
             if irc_regex.connectionRegex['realname'].match(realname):
                 client.username = commandSplit[1]
@@ -87,8 +87,8 @@ def command_join(client, commandSplit, server):
 def command_privmsg(client, commandSplit, server):
     chanName = commandSplit[1]
     if chanName in client.channel_joined_list.keys():
-        if irc_regex.connectionRegex['privmsg'].match(commandSplit[2]):
-            msg = ' '.join(commandSplit[2:]).lstrip(':')
+        msg = commandSplit[2]
+        if irc_regex.connectionRegex['privmsg'].match(msg):
             channel = server.channel_list[chanName]
             channel.relay(client, ":%s PRIVMSG %s :%s" % (client.get_ident(), channel.name, msg))
         else:
@@ -99,6 +99,6 @@ def command_privmsg(client, commandSplit, server):
 #############################################
 def command_quit(client, commandSplit, server):
     if len(commandSplit) > 1:
-        quit_msg = ' '.join(commandSplit[1 : ]).lstrip(':')
+        quit_msg = commandSplit[1]
     else: quit_msg = "Quit"
     server.disconnectClient(client, quit_msg)

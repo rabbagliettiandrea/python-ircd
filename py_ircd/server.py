@@ -4,7 +4,6 @@ import select
 import socket
 
 from py_ircd import irc_commands
-from py_ircd.const import irc_replies
 from py_ircd import client
 
 from py_ircd.utils import *
@@ -18,6 +17,7 @@ class Server(object):
         self.port = port
         self._running = False
         self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_sock.setblocking(0)
         self.client_list = {}
         self.socket_list = [self.server_sock]
         self.channel_list = {}
@@ -29,6 +29,7 @@ class Server(object):
     #############################################
     def acceptNewClient(self):
         clientSock = self.server_sock.accept()[0]    # Accettiamo il nuovo client
+        clientSock.setblocking(0)
         print_log("new client accepted")
         self.client_list[clientSock] = client.Client(clientSock, self.host)	# Lo aggiungiamo alle nostre liste
         self.socket_list.append(clientSock)
@@ -66,25 +67,38 @@ class Server(object):
                         data = sock.recv(256)		# Riceviamo questi dati
                         if not data:
                             raise client_errors.NoDataException()            # Se non abbiamo ricevuto dati, solleviamo un'eccezione
-                        command_list = data.lower().split('\n')[:-1]   # il client può inviare più comandi alla volta divisi da '\n'
+                        command_list = data.lower().splitlines()   # il client può inviare più comandi alla volta divisi da '\n'
                         for command in command_list:
-                            commandSplit = command.split()
+                            # se il comando è nella forma:
+                            # "COMMAND someoptions :    ciaoaoo  oaaoao"
+                            # eseguiamo lo split solo sulla parte prima dei :
+                            colon_index = command.find(':')
+                            if colon_index != -1: # se ha trovato ':'
+                                commandSplit = command[ : colon_index].split()
+                                commandSplit.append(command[colon_index+1 : ]) # il +1 ci elimina i :
+                            else:
+                                commandSplit = command.split()
+                                
+                            # chiamiamo il relativo comando in irc_commands
                             irc_commands.get_command(commandSplit[0])(client, commandSplit, self)
                             print_log("|M| %s: %s" % (client, command.strip()))
+                    
                     except client_errors.ClientException as e:
                         print_exc(exc=e, msg=client)
                         self.disconnectClient(client, 'Connection interrupted')
                     except Exception:
                         raise
 
-    #############################################
+    #############################################        
     def stop(self):
         print_log("Stopping Server")
         self._running = False
-        closing_sock = socket.create_connection((self.host, self.port)) # necessario per sbloccare la select
-        for sock in self.socket_list:
+#        closing_sock = socket.create_connection((self.host, self.port)) # per sbloccare l'eventuale accept
+        to_close = self.socket_list[:]
+        del self.socket_list[:]
+        for sock in to_close:
             sock.close()
-        
+
     #############################################
     def restart(self):
         print_log("Restarting Server")

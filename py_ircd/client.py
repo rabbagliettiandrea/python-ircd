@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from py_ircd.const import irc_replies
-
+from py_ircd.error import client_errors
 
 #############################################
 # Classe Client: gestisce le comunicazioni con un singolo client remoto
