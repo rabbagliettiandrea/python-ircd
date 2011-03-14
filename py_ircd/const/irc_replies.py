@@ -8,7 +8,7 @@
 #	print 'RPL_WELCOME:', dict['RPL_WELCOME'][1]('provanick!provauser@provahost')
 #	stamperà:
 #	"RPL_WELCOME: Welcome to the Internet Relay Network provanick!provauser@provahost"
-#	comunque viene utilizzato solo tramite Client.get_irc_reply
+#	comunque viene utilizzato solo tramite Client.reply
 
 dict = {
 	'RPL_WELCOME' : ('001', lambda ident: "Welcome to the Internet Relay Network %s" % (ident)),

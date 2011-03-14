@@ -2,7 +2,7 @@
 
 import re
 
-connectionRegex = {
+connection_regex = {
         # La password deve essere una stringa di un numero di caratteri compreso tra 5 e 32
         # e non può essere uguale al nick
         'pass'  :   re.compile('^[A-Za-z0-9]{5,32}$'),

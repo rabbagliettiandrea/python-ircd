@@ -1,42 +1,40 @@
 # -*- coding: utf-8 -*-
 
-from py_ircd.error import client_errors
-from py_ircd.utils import print_replyToClient
-
-#############################################
-# Classe Channel: gestisce tutte le informazioni su un canale
 class Channel(object):
     
-    class Client_Property(object):
-        def __init__(self, nick):
-            self.nick = nick
+    class InChannelProperty(object):
+        def __init__(self, client):
+            self.client = client
             self.operator = False
             self.voice = False
         
         def __str__(self):
             prefix = (self.operator and '@') or (self.voice and '%') or ''
-            return '%s%s' % (prefix, self.nick)
+            return '%s%s' % (prefix, self.client.nick)
+    
+    channels = {} # { channame : channel_obj }
     
     def __init__(self, name):
         self.name = name
         self.topic = 'Topicozzo'
         self.flags = set()
         self.scope_flag = '='  # @ is used for secret channels, * for private channels, = for others (public channels)
-        self.client_list = {} # { client : proprietà }
+        self.clients = {} # { client : in_channel_property }
         self.owner = None
         
     def add_client(self, client):
-        self.client_list[client] = Channel.Client_Property(client.nick)
+        self.clients[client] = Channel.InChannelProperty(client)
 
     def nicklist_to_string(self):
         nicklist = []
-        for client_property in self.client_list.values():
-            nicklist.append(str(client_property))
+        for in_channel_property in self.clients.values():
+            nicklist.append(str(in_channel_property))
         return ' '.join(nicklist)
     
-    def relay(self, sender, data):
-        for client in self.client_list:
+    def relay(self, sender, line):
+        for client in self.clients:
             if not client == sender:
-                client.send_data(data)
+                client.send_line(line)
+
 
             

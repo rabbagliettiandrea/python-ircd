@@ -1,20 +1,12 @@
 # -*- coding: utf-8 -*-
 
-
-#############################################
-# Super classe ClientException
-class ClientException(Exception): 
+class ClientException(Exception):
     pass
 
-
-#############################################
-# Classe NoDataException: lanciata quando il client si disconnette
-class NoDataException(ClientException): 
-    pass
-
-
-#############################################
-# Classe ReplyException: lanciata in caso di problemi nel socket.send
-class ReplyException(ClientException): 
-    pass
-
+class NotRegisteredException(ClientException): 
+    
+    def __init__(self):
+        self.message = self.__class__.__name__
+    
+    def __str__(self):
+        return self.message
