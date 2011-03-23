@@ -27,6 +27,7 @@ class Client(Connection):
             raise client_errors.NotRegisteredException()
 
     def lineReceived(self, line):
+        line = line.rstrip('\r')
         command = line.lower()
         # se il comando è nella forma:
         # "COMMAND someoptions :    ciaoaoo  oaaoao"
