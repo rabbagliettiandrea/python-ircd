@@ -28,19 +28,18 @@ class Client(Connection):
 
     def lineReceived(self, line):
         line = line.rstrip('\r')
-        command = line.lower()
         # se il comando è nella forma:
         # "COMMAND someoptions :    ciaoaoo  oaaoao"
         # eseguiamo lo split solo sulla parte prima dei :
-        colon_index = command.find(':')
+        colon_index = line.find(':')
         if colon_index != -1: # se ha trovato ':'
-            commandSplit = command[ : colon_index].split()
-            commandSplit.append(command[colon_index+1 : ]) # il +1 ci elimina i :
+            commandSplit = line[ : colon_index].lower().split()
+            commandSplit.append(line[colon_index+1 : ]) # il +1 ci elimina i :
         else:
-            commandSplit = command.split()
+            commandSplit = line.lower().split()
         # chiamiamo il relativo comando in irc_commands
         irc_commands.get_command(commandSplit[0])(self, commandSplit)
-        self.print_log("|M| %s: %s" % (self, command.strip()))
+        self.print_log("|M| %s: %s" % (self, line.strip()))
     
     def send_line(self, line):
         Connection.sendLine(self, line)
