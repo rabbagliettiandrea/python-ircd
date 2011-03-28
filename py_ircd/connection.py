@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from twisted.protocols.basic import LineOnlyReceiver
-
+from twisted.internet.error import ConnectionDone
 from py_ircd.utils import *
 
 class Connection(LineOnlyReceiver):
@@ -19,6 +19,8 @@ class Connection(LineOnlyReceiver):
         print_log('connection count: %s' % self.factory.connections_count())
 
     def connectionLost(self, reason):
+        if not reason.check(ConnectionDone):
+            self.quit()
         self.factory.client_list.remove(self)
         print_log('%s disconnected: %s' % (self, reason.getErrorMessage()))
         print_log('connection count: %s' % self.factory.connections_count())

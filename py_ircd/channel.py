@@ -17,7 +17,7 @@ class Channel(object):
     def __init__(self, name):
         self.name = name
         self.topic = 'Topicozzo'
-        self.flags = set()
+        self.modes = set()
         self.scope_flag = '='  # @ is used for secret channels, * for private channels, = for others (public channels)
         self.clients = {} # { client : in_channel_property }
         self.owner = None

@@ -62,9 +62,10 @@ class Client(Connection):
         else:
             Connection.sendLine(self, string)
     
-    def quit(self, quit_msg):
+    def quit(self, quit_msg=None):
         for channel in self.joined_channels.values():
             channel.relay(self, ":%s QUIT :%s" % (self.get_ident(), quit_msg))
             del channel.clients[self]
-        self.transport.loseConnection()
+        if self.transport.connected:
+            self.transport.loseConnection()
         

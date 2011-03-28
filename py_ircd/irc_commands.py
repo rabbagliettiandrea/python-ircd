@@ -76,7 +76,7 @@ def command_privmsg(client, lineSplit):
     target = lineSplit[1]
     msg = lineSplit[2]
     found = False
-    if target[0] == '#' and target in client.joined_channels.keys():
+    if target[0] in '#&!+' and target in client.joined_channels.keys():
         found = True
         channel = Channel.channels[target]
         channel.relay(client, ":%s PRIVMSG %s :%s" % (client.get_ident(), channel.name, msg))

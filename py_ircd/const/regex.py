@@ -21,7 +21,7 @@ connection_regex = {
 
         # channel name minlung = 1, maxlung = 20
         # any octet except NUL, BELL, CR, LF, " ", "," and ":"
-        'chanName'  :    re.compile('^\#[^\s,:]{1,20}$'),
+        'chanName'  :    re.compile('^[&#+!][^\s,:]{1,50}$'),
         
 }
 

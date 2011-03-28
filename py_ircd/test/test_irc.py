@@ -20,7 +20,7 @@ class TestIRC(Platform):
         client_2 = MockClient()
         self.hello(client_1, psw='passwd', nick='nick1', user='user1')
         self.hello(client_2, psw='passwd', nick='nick2', user='user2')
-        self.assert_exchange(client_1, ('juoin #test_channel', ':testing_srv 366'))
+        self.assert_exchange(client_1, ('join #test_channel', ':testing_srv 366'))
         self.assert_exchange(client_2, ('join #test_channel', ':testing_srv 366'))
         client_1.t_send_line('privmsg #test_channel :Some tests, python reigns!')
         self.assert_data_contains(client_2, 'Some tests, python reigns!')
