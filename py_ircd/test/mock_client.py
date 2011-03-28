@@ -2,20 +2,22 @@
 
 from twisted.test.proto_helpers import StringTransport
 
-from py_ircd.client import Client
-
+from py_ircd.client import Client    
 
 class MockClient(Client):
+    
+    class MockFactory():
+            def __init__(self):
+                self.client_list = []
     
     def __init__(self):
         Client.__init__(self)
         self.transport = StringTransport()
+        self.factory = MockClient.MockFactory()
         self.makeConnection(self.transport)
-    
+        
     def connectionMade(self):
-        def do_nothing(*args):
-            pass
-        self.print_log = do_nothing
+        self.factory.client_list.append(self)
         self.host = self.transport.getHost().host
         self.server_host = 'testing_srv'
         
@@ -30,7 +32,5 @@ class MockClient(Client):
         
     def t_send_line(self, line):
         self.dataReceived(line+'\n')
-    
-        
-        
+
         

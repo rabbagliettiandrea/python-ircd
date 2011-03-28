@@ -4,9 +4,14 @@ from collections import namedtuple
 from twisted.trial import unittest
 from twisted.internet import reactor
 
+from py_ircd import utils
+from py_ircd.const import constants
+
 
 class Platform(unittest.TestCase):
-
+    
+    utils.VERBOSITY_LEVEL = constants.VERBOSITY_SILENT
+    
     def assert_data_contains(self, client, expected):
         self.assertIn(expected, client.t_get_data())
 

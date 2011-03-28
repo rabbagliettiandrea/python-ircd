@@ -34,7 +34,7 @@ class Channel(object):
     def relay(self, sender, line):
         for client in self.clients:
             if not client == sender:
-                client.send_line(line)
+                client.send(line)
 
 
             

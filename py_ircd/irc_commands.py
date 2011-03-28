@@ -2,66 +2,49 @@
 
 from py_ircd.const import regex
 from py_ircd.channel import Channel
-from py_ircd.utils import print_warn
 
-# Funzioni per gestire i comandi richiesti dal client
 
-#############################################
 def get_command(name):
     return globals().get('command_' + name, command_unknown)
 
-#############################################
-def command_unknown(client, commandSplit):
-    reply_msg = client.send_reply('ERR_UNKNOWNCOMMAND', commandSplit[0])
-    print_warn("->  %s: %s" % (client, reply_msg))
+def command_unknown(client, lineSplit):
+    client.send('ERR_UNKNOWNCOMMAND', lineSplit[0])
+
+def command_pass(client, lineSplit):
+    if len(lineSplit) == 1 or not regex.connection_regex['pass'].match(lineSplit[1]):
+        client.send('ERR_NEEDMOREPARAMS', lineSplit[0])
+    if client.registered:
+        client.send('ERR_ALREADYREGISTRED')
     
-#############################################
-def command_pass(client, commandSplit):
-    if not client.password and not client.nick:
-        if len(commandSplit)==2 and regex.connection_regex['pass'].match(commandSplit[1]):
-            client.password = commandSplit[1]
-        else:
-            client.send_reply('ERR_NEEDMOREPARAMS', commandSplit[0])
-    else:
-        client.send_reply('ERR_ALREADYREGISTRED')
+    client.password = lineSplit[1]
 
-#############################################
-def command_nick(client, commandSplit):
-    if not client.nick:
-        if len(commandSplit) == 2 and regex.connection_regex['nick'].match(commandSplit[1]):
-            client.nick = commandSplit[1]
-        else:
-            client.send_line('-E- Il formato del nick è illegale')
-    else:
-        client.send_line("-E- Nick già inviato ---")
+def command_nick(client, lineSplit):
+    if len(lineSplit) == 1:
+        client.send('ERR_NONICKNAMEGIVEN')
+    if 'r' in client.modes:
+        client.send('ERR_RESTRICTED')
+    if not regex.connection_regex['nick'].match(lineSplit[1]):
+        client.send('ERR_ERRONEUSNICKNAME', lineSplit[1])
+    
+    client.nick = lineSplit[1]
+    
+def command_user(client, lineSplit):
+    if client.registered or not client.nick:  
+        client.send('ERR_ALREADYREGISTRED')
+    if len(lineSplit) < 4 or not regex.connection_regex['user'].match(lineSplit[1]) \
+                          or not regex.connection_regex['realname'].match(lineSplit[4]):
+        client.send('ERR_NEEDMOREPARAMS', lineSplit[0])
+    
+    client.username = lineSplit[1]
+    client.realname = lineSplit[4]
+    for flag in {'4':'w', '8':'i', '12':'wi'}.get(lineSplit[2], ''):
+        client.modes.add(flag)
+    client.registered = True
+    client.send('RPL_WELCOME', client.get_ident())
 
-#############################################
-def command_user(client, commandSplit):
-    if not client.username and client.nick:  
-        if len(commandSplit) > 4 and regex.connection_regex['user'].match(commandSplit[1]):
-            # visto che realname può contenere spazi tramite la list comprehension otteniamo la lista contenente tutti i segmenti del realname
-            realname = commandSplit[4] # successivamente joiniamo questi segmenti insieme con ' '
-
-            if regex.connection_regex['realname'].match(realname):
-                client.username = commandSplit[1]
-                client.realname = realname
-                for flag in {'4' : 'w', '8' : 'i', '12' : 'wi'}.get(commandSplit[2], ''):
-                    client.modes.add(flag)
-                
-                client.registered = True
-                client.send_reply('RPL_WELCOME', client.get_ident())
-                
-            else:
-                client.send_line('-E- Il formato del realname è illegale')
-        else:
-            client.send_line('-E- Il formato dello user è illegale')
-    else:
-        client.send_line("-E- User già inviato o non è stato inviato prima nick")
-
-#############################################
-def command_join(client, commandSplit):
-    chanName = commandSplit[1]
-    if len(commandSplit) == 2 and regex.connection_regex['chanName'].match(chanName):
+def command_join(client, lineSplit):
+    chanName = lineSplit[1]
+    if len(lineSplit) == 2 and regex.connection_regex['chanName'].match(chanName):
         if not chanName in Channel.channels:                   		# Crea il canale se non esiste
             Channel.channels[chanName] = Channel(chanName)
         
@@ -71,31 +54,42 @@ def command_join(client, commandSplit):
             channel.add_client(client)	# Aggiungo il client nella lista di quel canale
             client.joined_channels[chanName] = channel # Aggiungo il canale alla lista di quel client
             join_succesful_msg = ":%s JOIN :%s" % (client.get_ident(), channel.name)
-            client.send_line(join_succesful_msg)
+            client.send(join_succesful_msg)
             channel.relay(client, join_succesful_msg)
             if channel.topic:
-                client.send_reply('RPL_TOPIC', channel.name, channel.topic)
-            client.send_reply('RPL_NAMREPLY', channel.scope_flag, channel.name, channel.nicklist_to_string())
-            client.send_reply('RPL_ENDOFNAMES', channel.name)
+                client.send('RPL_TOPIC', channel.name, channel.topic)
+            client.send('RPL_NAMREPLY', channel.scope_flag, channel.name, channel.nicklist_to_string())
+            client.send('RPL_ENDOFNAMES', channel.name)
         else:
-            client.send_line("-E- User già collegato in questo canale")
+            client.send("-E- User già collegato in questo canale")
     else:
-        client.send_line("-E- Invalid channel name")
+        client.send("-E- Invalid channel name")
 
-#############################################
-def command_privmsg(client, commandSplit):
-    chanName = commandSplit[1]
-    if chanName in client.joined_channels.keys():
-        msg = commandSplit[2]
-        if regex.connection_regex['privmsg'].match(msg):
-            channel = Channel.channels[chanName]
-            channel.relay(client, ":%s PRIVMSG %s :%s" % (client.get_ident(), channel.name, msg))
+
+def command_privmsg(client, lineSplit):
+    if len(lineSplit) < 3:
+        if ''.join(lineSplit).find(':') == -1:
+            client.send('ERR_NOTEXTTOSEND')
         else:
-            client.send_line("-E- Invalid privmsg syntax")
+            client.send('ERR_NORECIPIENT', 'PRIVMSG')
+    
+    target = lineSplit[1]
+    msg = lineSplit[2]
+    found = False
+    if target[0] == '#' and target in client.joined_channels.keys():
+        found = True
+        channel = Channel.channels[target]
+        channel.relay(client, ":%s PRIVMSG %s :%s" % (client.get_ident(), channel.name, msg))
     else:
-        client.send_reply('ERR_NOSUCHNICK', chanName)
+        for client in client.factory.client_list:
+            if target == client.nick:
+                found = True
+                client.send(":%s PRIVMSG %s :%s" % (client.get_ident(), target, msg))
+                break
+    if not found:
+        client.send('ERR_NOSUCHNICK', target)
 
-#############################################
-def command_quit(client, commandSplit):
-    msg = (len(commandSplit)>1 and commandSplit[1]) or "Client Quit"
+
+def command_quit(client, lineSplit):
+    msg = (len(lineSplit)>1 and lineSplit[1]) or "Client quit"
     client.quit(msg)

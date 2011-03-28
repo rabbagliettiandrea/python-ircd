@@ -9,7 +9,7 @@ class Server(protocol.ServerFactory):
     protocol = Client
 
     def start(self, host, port):
-        self.connections_count = 0
+        self.client_list = []
         self.host = host
         self.port = port
         reactor.listenTCP(port=port, factory=self, interface=host)
@@ -20,3 +20,6 @@ class Server(protocol.ServerFactory):
         
     def is_running(self):
         return reactor.running
+    
+    def connections_count(self):
+        return len(self.client_list)

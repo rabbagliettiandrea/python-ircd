@@ -24,7 +24,7 @@ class Client(Connection):
         if self.registered:
             return "%s!%s@%s" % (self.nick, self.username, self.host)
         else:
-            raise client_errors.NotRegisteredException()
+            return 'none!none@none'
 
     def lineReceived(self, line):
         line = line.rstrip('\r')
@@ -33,23 +33,34 @@ class Client(Connection):
         # eseguiamo lo split solo sulla parte prima dei :
         colon_index = line.find(':')
         if colon_index != -1: # se ha trovato ':'
-            commandSplit = line[ : colon_index].lower().split()
-            commandSplit.append(line[colon_index+1 : ]) # il +1 ci elimina i :
+            lineSplit = line[ : colon_index].lower().split()
+            lineSplit.append(line[colon_index+1 : ]) # il +1 ci elimina i :
         else:
-            commandSplit = line.lower().split()
+            lineSplit = line.lower().split()
         # chiamiamo il relativo comando in irc_commands
-        irc_commands.get_command(commandSplit[0])(self, commandSplit)
-        self.print_log("|M| %s: %s" % (self, line.strip()))
+        command = irc_commands.get_command(lineSplit[0])
+        try:
+            command(self, lineSplit)
+        except client_errors.UnknownCommandError as ex:
+            print_warn("->  %s: %s" % (self, str(ex)))
+        except client_errors.ClientError:
+            pass
+        print_log("|M| %s: %s" % (self, line.strip()))
     
-    def send_line(self, line):
-        Connection.sendLine(self, line)
-    
-    def send_reply(self, reply, *args_reply):
-        msg = irc_replies.dict[reply][1](*args_reply)
-        id_msg = irc_replies.dict[reply][0]
-        reply = ':%s %s %s %s' % (self.server_host, id_msg, self.nick, msg)
-        Connection.sendLine(self, reply)
-        return msg
+    def send(self, string, *args):
+        type = string[ :3]
+        if type in ['RPL', 'ERR']:
+            msg = irc_replies.dict[string][1](*args)
+            id_msg = irc_replies.dict[string][0]
+            to_send = ':%s %s %s %s' % (self.server_host, id_msg, self.nick, msg)
+            Connection.sendLine(self, to_send)
+            if type == 'ERR':
+                if string == 'ERR_UNKNOWNCOMMAND':
+                    raise client_errors.UnknownCommandError(msg)
+                else:
+                    raise client_errors.ClientError(msg)
+        else:
+            Connection.sendLine(self, string)
     
     def quit(self, quit_msg):
         for channel in self.joined_channels.values():
