@@ -29,7 +29,6 @@ def main():
         print_exc(exc=e)
         sys.exit(constants.ABEND)
 
-#############################################
 def get_arg():
     arg_parser = ArgumentParser(description=constants.SRV_NAME)
     arg_parser.add_argument('--debug', action='store_true', dest='debug',
@@ -45,6 +44,5 @@ def apply_arg(arg_results):
         utils.VERBOSITY_LEVEL = constants.VERBOSITY_DEBUG   
 
 
-#############################################
 if __name__ == '__main__': 
     main()

@@ -34,4 +34,9 @@ class TestIRC(Platform):
         self.hello(client, nick='nick1', user='user1')
         self.assert_exchange(client, ('pass passwd', ':testing_srv 462'))
         
+    def test_multiple_join(self):
+        client = MockClient()
+        self.hello(client, nick='nick1', user='user1')
+        client.t_send_line('join #chan1, #chan2 ,#chan3')
+        self.assertEqual(set(client.joined_channels.keys()), set(['#chan1', '#chan2', '#chan3']))
         

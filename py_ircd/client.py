@@ -5,6 +5,8 @@ from py_ircd.error import client_errors
 from py_ircd.utils import *
 from py_ircd.const import irc_replies
 from py_ircd import irc_commands
+from py_ircd.const.regex import util_regex
+
 
 class Client(Connection):
 
@@ -15,7 +17,7 @@ class Client(Connection):
         self.password = None
         self.registered = False
         self.modes = set()          # Usermodes attivi per quell'utente
-        self.joined_channels = {}   # { channame : channel }
+        self.joined_channels = {}   # { chan_name : channel }
         
     def __str__(self):      
         return Connection.__str__(self) + ((self.registered and '[ident: %s]' % self.get_ident()) or '')
@@ -32,12 +34,13 @@ class Client(Connection):
         # "COMMAND someoptions :    ciaoaoo  oaaoao"
         # eseguiamo lo split solo sulla parte prima dei :
         colon_index = line.find(':')
-        if colon_index != -1: # se ha trovato ':'
+        if colon_index != -1:
+            line = util_regex['subcommaspace'].sub(',', line[ : colon_index])+line[colon_index : ]
             lineSplit = line[ : colon_index].lower().split()
             lineSplit.append(line[colon_index+1 : ]) # il +1 ci elimina i :
         else:
-            lineSplit = line.lower().split()
-        # chiamiamo il relativo comando in irc_commands
+            lineSplit = util_regex['subcommaspace'].sub(',', line).lower().split()
+            
         command = irc_commands.get_command(lineSplit[0])
         try:
             command(self, lineSplit)

@@ -12,7 +12,7 @@ class Channel(object):
             prefix = (self.operator and '@') or (self.voice and '%') or ''
             return '%s%s' % (prefix, self.client.nick)
     
-    channels = {} # { channame : channel_obj }
+    channels = {} # { chan_name : channel_obj }
     
     def __init__(self, name):
         self.name = name

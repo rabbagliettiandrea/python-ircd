@@ -2,7 +2,7 @@
 
 import re
 
-connection_regex = {
+command_regex = {
         # La password deve essere una stringa di un numero di caratteri compreso tra 5 e 32
         # e non può essere uguale al nick
         'pass'  :   re.compile('^[A-Za-z0-9]{5,32}$'),
@@ -21,7 +21,13 @@ connection_regex = {
 
         # channel name minlung = 1, maxlung = 20
         # any octet except NUL, BELL, CR, LF, " ", "," and ":"
-        'chanName'  :    re.compile('^[&#+!][^\s,:]{1,50}$'),
+        'chan_name'  :    re.compile('^[&#+!][^\s,:]{1,50}$'),
         
 }
 
+util_regex = {
+        # utile per sostituire un comando del genere: 'JOIN #chan1, #chan2,   #chan3 ,#chan4
+        # ad uno così formato: 'JOIN #chan1,#chan2,#chan3
+        'subcommaspace'  :    re.compile('\s*,\s*')
+              
+}
