@@ -19,16 +19,20 @@ class Platform(unittest.TestCase):
         if not isinstance(tuples, list):
             tuples = [tuples]
         ExchangeTuple = namedtuple('ExchangeTuple', 'to_send expected')
-        tuples = [ExchangeTuple(tuple[0]+'\n', tuple[1]) for tuple in tuples]
+        tuples = [ExchangeTuple(tuple[0], tuple[1]) for tuple in tuples]
         for tuple in tuples:
-            client.t_send_data(tuple.to_send)
+            client.t_send_line(tuple.to_send)
             reply_from_srv = client.t_get_data()
             self.assertIn(tuple.expected, reply_from_srv)
         client.t_flush_data()
             
     def hello(self, client, psw='pass_test', nick='nick_test', user='user_test'):
-        client.t_send_data('pass %s\n' % psw+
-                           'nick %s\n' % nick +
-                           'user %s 0 * :Realname\n' % user)
+        client.t_send_lines('pass %s' % psw,
+                           'nick %s' % nick,
+                           'user %s 0 * :Realname' % user)
         self.assertIn(':testing_srv 001', client.t_get_data())
         client.t_flush_data()
+
+    def join(self, client, chan_name):
+        self.assert_exchange(client, ('join %s' % chan_name, ':testing_srv 366'))
+        

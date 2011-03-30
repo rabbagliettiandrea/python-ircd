@@ -21,6 +21,7 @@ class Channel(object):
         self.scope_flag = '='  # @ is used for secret channels, * for private channels, = for others (public channels)
         self.clients = {} # { client : in_channel_property }
         self.owner = None
+        self.key = None
         
     def add_client(self, client):
         self.clients[client] = Channel.InChannelProperty(client)

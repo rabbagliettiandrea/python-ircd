@@ -27,8 +27,9 @@ class MockClient(Client):
     def t_flush_data(self):
         self.transport.clear()
         
-    def t_send_data(self, data):
-        self.dataReceived(data)
+    def t_send_lines(self, *lines):
+        lines = '\n'.join(lines) + '\n'
+        self.dataReceived(lines)
         
     def t_send_line(self, line):
         self.dataReceived(line+'\n')

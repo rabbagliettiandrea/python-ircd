@@ -53,19 +53,30 @@ class Client(Connection):
     def send(self, string, *args):
         type = string[ :3]
         if type in ['RPL', 'ERR']:
-            msg = irc_replies.dict[string][1](*args)
+            reply_msg = irc_replies.dict[string][1](*args)
             id_msg = irc_replies.dict[string][0]
-            to_send = ':%s %s %s %s' % (self.server_host, id_msg, self.nick, msg)
+            to_send = ':%s %s %s %s' % (self.server_host, id_msg, self.nick, reply_msg)
             Connection.sendLine(self, to_send)
-            if type == 'ERR':
-                if string == 'ERR_UNKNOWNCOMMAND':
-                    raise client_errors.UnknownCommandError(msg)
-                else:
-                    raise client_errors.ClientError(msg)
         else:
             Connection.sendLine(self, string)
     
-    def quit(self, quit_msg=None):
+    def send_n_raise(self, string, *args):
+        self.send(string, *args)
+        
+        reply_msg = irc_replies.dict[string][1](*args)
+        if string == 'ERR_UNKNOWNCOMMAND':
+            raise client_errors.UnknownCommandError(reply_msg)
+        else:
+            raise client_errors.ClientError(reply_msg)
+        
+    def part(self, channel, part_msg=''):
+        part_string = ":%s PART %s" % (self.get_ident(), channel.name)+(part_msg and ' :%s' % part_msg)
+        channel.relay(self, part_string)
+        self.send(part_string)
+        del self.joined_channels[channel.name]
+        del channel.clients[self]
+    
+    def quit(self, quit_msg=''):
         for channel in self.joined_channels.values():
             channel.relay(self, ":%s QUIT :%s" % (self.get_ident(), quit_msg))
             del channel.clients[self]
