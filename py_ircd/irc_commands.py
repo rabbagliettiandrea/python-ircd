@@ -40,6 +40,7 @@ def command_user(client, lineSplit):
     for flag in {'4':'w', '8':'i', '12':'wi'}.get(lineSplit[2], ''):
         client.modes.add(flag)
     client.registered = True
+    client.factory.clients[client.nick] = client
     client.send('RPL_WELCOME', client.get_ident())
 
 def command_join(client, lineSplit):
@@ -107,42 +108,66 @@ def command_part(client, lineSplit):
         
 def command_privmsg(client, lineSplit):
     if len(lineSplit) < 3:
-        if ''.join(lineSplit).find(':') == -1:
+        if ':' not in ''.join(lineSplit[2:]):
             client.send_n_raise('ERR_NOTEXTTOSEND')
         else:
             client.send_n_raise('ERR_NORECIPIENT', 'PRIVMSG')
     
     target = lineSplit[1]
     msg = lineSplit[2]
-    found = False
-    if target[0] in '#&!+' and target in client.joined_channels.keys():
-        found = True
-        channel = Channel.channels[target]
-        channel.relay(client, ":%s PRIVMSG %s :%s" % (client.get_ident(), channel.name, msg))
+    
+    if target[0] in '#&!+':
+        if target not in client.joined_channels:
+            client.send_n_raise('ERR_CANNOTSENDTOCHAN', target)
+        if target not in Channel.channels:
+            client.send_n_raise('ERR_NOSUCHNICK', target)
+        target_ob = Channel.channels[target]
+        send_func = target_ob.relay
     else:
-        for client in client.factory.client_list:
-            if target == client.nick:
-                found = True
-                client.send(":%s PRIVMSG %s :%s" % (client.get_ident(), target, msg))
-                break
-    if not found:
-        client.send_n_raise('ERR_NOSUCHNICK', target)
-
-
+        if target not in client.factory.clients:
+            client.send_n_raise('ERR_NOSUCHNICK', target)
+        target_ob = client.factory.clients[target]
+        send_func = target_ob.send
+    
+    send_func(target_ob, ":%s PRIVMSG %s :%s" % (client.get_ident(), target, msg))
+        
+        
 def command_quit(client, lineSplit):
     msg = (len(lineSplit)>1 and lineSplit[1]) or "Client quit"
     client.quit(msg)
     
     
-def command_mode(client, lineSplit): #TODO
-    if len(lineSplit)<3:
+def command_Smode(client, lineSplit): #TODO
+    if len(lineSplit)<2 or lineSplit[2][0] not in '+-':
         client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
+     
+    target = lineSplit[1]  
         
-    chan_name = lineSplit[1]
-    if lineSplit[2][0] == '+':
-        Channel.channels[chan_name].modes.add(lineSplit[2][1])
-        Channel.channels[chan_name].key=lineSplit[3]
-    elif lineSplit[2][0] == '-':
-        pass
-    else:
-        pass #error
+    if len(lineSplit) == 2:
+        if target[0] in '#&!+':
+            if target not in Channel.channels:
+                client.send_n_raise('ERR_NOSUCHNICK', target)
+            request_ob = Channel.channels[target]
+        else:
+            if target not in client.factory.clients:
+                client.send_n_raise('ERR_NOSUCHNICK', target)
+            request_ob = client.factory.clients[target]
+            client.send('RPL_UMODEIS', '+' + ''.join(request_ob.modes)) 
+    
+    modes = (lineSplit[2][0], list(lineSplit[2][1:]))
+    
+    if target[0] in '#&!+':
+        if modes[0] == '+':
+            Channel.channels[chan_name].modes.add(lineSplit[2][1])
+            Channel.channels[chan_name].key=lineSplit[3]
+        else:
+            pass
+    else: # is an user
+        if not set(modes[1]).issubset('aiwrs'):
+            client.send_n_raise('ERR_UMODEUNKNOWNFLAG')
+        if client.nick != target:
+            client.send_n_raise('ERR_USERSDONTMATCH')
+        if True: 
+            pass
+        
+        

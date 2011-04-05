@@ -9,8 +9,8 @@ from py_ircd.const.regex import util_regex
 
 
 class Client(Connection):
-
-    def __init__(self):
+    
+    def __init__(self):       
         self.username = None
         self.nick = None
         self.realname = None
@@ -33,8 +33,8 @@ class Client(Connection):
         # se il comando è nella forma:
         # "COMMAND someoptions :    ciaoaoo  oaaoao"
         # eseguiamo lo split solo sulla parte prima dei :
-        colon_index = line.find(':')
-        if colon_index != -1:
+        if ':' in line:
+            colon_index = line.find(':')
             line = util_regex['subcommaspace'].sub(',', line[ : colon_index])+line[colon_index : ]
             colon_index = line.find(':')
             lineSplit = line[ : colon_index-1].lower().split()
@@ -51,7 +51,7 @@ class Client(Connection):
             pass
         print_log("|M| %s: %s" % (self, line.strip()))
     
-    def send(self, string, *args):
+    def send(self, string, *args):        
         type = string[ :3]
         if type in ['RPL', 'ERR']:
             reply_msg = irc_replies.dict[string][1](*args)
@@ -83,4 +83,6 @@ class Client(Connection):
             del channel.clients[self]
         if self.transport.connected:
             self.transport.loseConnection()
+        
+
         

@@ -9,7 +9,7 @@ class TestIRC(Platform):
         client = MockClient()
         self.hello(client, nick='nick1', user='user1')
         traffic_expected = [
-                ('privmsg #nonjoinato :prova', ':testing_srv 401'),
+                ('privmsg #nonjoinato :prova', ':testing_srv 404'),
                 ('join #joinato', ':testing_srv 366'),
                 ('privmsg #joinato :prova', ''),
         ]
