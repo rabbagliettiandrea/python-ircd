@@ -15,8 +15,9 @@ class Connection(LineOnlyReceiver):
     def connectionMade(self):
         self.idle_time = 0
         self.check_alive_loop = LoopingCall(self.handle_idle_time)
+        self.timeout_delayed = None
         reactor.callLater(1, self.check_alive_loop.start, 1)
-
+        
         self.factory.connections_count += 1
         self.ID = Connection.ID
         Connection.ID += 1
@@ -40,12 +41,12 @@ class Connection(LineOnlyReceiver):
 
     def dataReceived(self, data):
         LineOnlyReceiver.dataReceived(self, data)
+        if self.timeout_delayed:
+            self.timeout_delayed.cancel()
         self.idle_time = 0
     
     def handle_idle_time(self):
         self.idle_time += 1
         if self.idle_time == 5:
-            self.send(":%s PING" % self.get_ident()
-            
-#            if 
-#            self.idle_time = 0
+            self.send(":%s PING" % self.get_ident())
+            self.timeout_delayed = reactor.callLater(5, self.quit, 'Ping timeout: 240 seconds')
