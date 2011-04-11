@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 
-class Channel(object):
+import time
+
+
+class ClientInChannel(object):
     
-    class InChannelProperty(object):
-        def __init__(self, client):
-            self.client = client
-            self.operator = False
-            self.voice = False
-        
-        def __str__(self):
-            prefix = (self.operator and '@') or (self.voice and '%') or ''
-            return '%s%s' % (prefix, self.client.nick)
+    def __init__(self, client):
+        self.client = client
+        self.operator = False
+        self.voice = False
+    
+    def __str__(self):
+        prefix = (self.operator and '@') or (self.voice and '%') or ''
+        return '%s%s' % (prefix, self.client.nick)
+
+
+class Channel(object):
     
     channels = {} # { chan_name : channel_obj }
     
@@ -22,14 +27,18 @@ class Channel(object):
         self.clients = {} # { client : in_channel_property }
         self.owner = None
         self.key = None
+        self.creation_date = int(time.time())
         
     def add_client(self, client):
-        self.clients[client] = Channel.InChannelProperty(client)
+        self.clients[client] = ClientInChannel(client)
+        
+    def remove_client(self, client):
+        del self.clients[client]
 
     def nicklist_to_string(self):
         nicklist = []
-        for in_channel_property in self.clients.values():
-            nicklist.append(str(in_channel_property))
+        for client_in_channel in self.clients.values():
+            nicklist.append(str(client_in_channel))
         return ' '.join(nicklist)
     
     def relay(self, sender, line):

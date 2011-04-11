@@ -11,7 +11,7 @@ class Server(protocol.ServerFactory):
     def start(self, host, port):
         if not self.is_running():
             self.connections_count = 0
-            self.clients = {}
+            self.clients = {} # { nick : client }
             self.host = host
             self.port = port
             reactor.listenTCP(port=port, factory=self, interface=host)

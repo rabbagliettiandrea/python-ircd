@@ -27,13 +27,12 @@ class Platform(unittest.TestCase):
             self.assertIn(tuple.expected, reply_from_srv)
         client.t_flush_data()
             
-    def hello(self, client, psw='pass_test', nick='nick_test', user='user_test'):
+    def hello(self, client, psw='passtest', nick='nick_test', user='user_test'):
         client.t_send_lines('pass %s' % psw,
                            'nick %s' % nick,
                            'user %s 0 * :Realname' % user)
+        self.assertNotIn(':testing_srv 461', client.t_get_data())
         self.assertIn(':testing_srv 001', client.t_get_data())
         client.t_flush_data()
-
-    def join(self, client, chan_name):
-        self.assert_exchange(client, ('join %s' % chan_name, ':testing_srv 366'))
+        
         

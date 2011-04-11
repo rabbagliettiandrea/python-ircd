@@ -88,7 +88,9 @@ def command_join(client, lineSplit):
 def command_part(client, lineSplit):
     if len(lineSplit)<2:
         client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
-    elif len(lineSplit)>2:
+    
+    part_msg = None
+    if len(lineSplit)>2:
         part_msg = lineSplit[2]
     
     topart_list = lineSplit[1].split(',')
@@ -137,8 +139,8 @@ def command_quit(client, lineSplit):
     client.quit(msg)
     
     
-def command_Smode(client, lineSplit): #TODO
-    if len(lineSplit)<2 or lineSplit[2][0] not in '+-':
+def command_mode(client, lineSplit): #TODO
+    if len(lineSplit) == 1 or (len(lineSplit)>2 and lineSplit[2][0] not in '+-'):
         client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
      
     target = lineSplit[1]  
@@ -147,27 +149,30 @@ def command_Smode(client, lineSplit): #TODO
         if target[0] in '#&!+':
             if target not in Channel.channels:
                 client.send_n_raise('ERR_NOSUCHNICK', target)
-            request_ob = Channel.channels[target]
+            channel = Channel.channels[target]
+            client.send('RPL_CHANNELMODEIS', target, '+' + ''.join(channel.modes))
+            client.send('RPL_CREATIONTIME', target, channel.creation_date)
         else:
             if target not in client.factory.clients:
                 client.send_n_raise('ERR_NOSUCHNICK', target)
-            request_ob = client.factory.clients[target]
-            client.send('RPL_UMODEIS', '+' + ''.join(request_ob.modes)) 
+            client.send('RPL_UMODEIS', '+' + ''.join(client.factory.clients[target].modes)) 
     
-    modes = (lineSplit[2][0], list(lineSplit[2][1:]))
+    # FIN QUI E' TUTTO OK!
     
-    if target[0] in '#&!+':
-        if modes[0] == '+':
-            Channel.channels[chan_name].modes.add(lineSplit[2][1])
-            Channel.channels[chan_name].key=lineSplit[3]
-        else:
-            pass
-    else: # is an user
-        if not set(modes[1]).issubset('aiwrs'):
-            client.send_n_raise('ERR_UMODEUNKNOWNFLAG')
-        if client.nick != target:
-            client.send_n_raise('ERR_USERSDONTMATCH')
-        if True: 
-            pass
+#    modes = (lineSplit[2][0], list(lineSplit[2][1:]))
+#    
+#    if target[0] in '#&!+':
+#        if modes[0] == '+':
+#            Channel.channels[chan_name].modes.add(lineSplit[2][1])
+#            Channel.channels[chan_name].key=lineSplit[3]
+#        else:
+#            pass
+#    else: # is an user
+#        if not set(modes[1]).issubset('aiwrs'):
+#            client.send_n_raise('ERR_UMODEUNKNOWNFLAG')
+#        if client.nick != target:
+#            client.send_n_raise('ERR_USERSDONTMATCH')
+#        if True: 
+#            pass
         
         

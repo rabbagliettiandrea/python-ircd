@@ -19,9 +19,9 @@ class PingTimeoutHandler():
         
     def _handle(self):
         self.idle_time += 1
-        if self.idle_time == 5:
-            self.connection.send(":%s PING" % self.connection.get_ident())
-            self.disconnect_schedule = reactor.callLater(5, self.connection.quit, 'Ping timeout: 240 seconds')
+        if self.idle_time == 240:
+            self.connection.send("PING :%s" % self.connection.server_host)
+            self.disconnect_schedule = reactor.callLater(240, self.connection.quit, 'Ping timeout: 240 seconds')
     
     def refresh(self):
         self.idle_time = 0

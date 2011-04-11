@@ -36,9 +36,9 @@ class Client(Connection):
         if ':' in line:
             colon_index = line.find(':')
             line = util_regex['subcommaspace'].sub(',', line[ : colon_index])+line[colon_index : ]
-            colon_index = line.find(':')
-            lineSplit = line[ : colon_index-1].lower().split()
-            lineSplit.append(line[colon_index+1 : ])
+            new_colon_index = line.find(':')
+            lineSplit = line[ : new_colon_index-1].lower().split()
+            lineSplit.append(line[new_colon_index+1 : ])
         else:
             lineSplit = util_regex['subcommaspace'].sub(',', line).lower().split()
             
@@ -51,16 +51,16 @@ class Client(Connection):
             pass
         print_log("|M| %s: %s" % (self, line.strip()))
     
-    def send(self, string, *args):        
-        type = string[ :3]
+    def send(self, line, *args):        
+        type = line[ :3]
         if type in ['RPL', 'ERR']:
-            reply_msg = irc_replies.dict[string][1](*args)
-            id_msg = irc_replies.dict[string][0]
+            reply_msg = irc_replies.dict[line][1](*args)
+            id_msg = irc_replies.dict[line][0]
             to_send = ':%s %s %s %s' % (self.server_host, id_msg, self.nick, reply_msg)
-            Connection.sendLine(self, to_send)
         else:
-            Connection.sendLine(self, string)
-    
+            to_send = line
+        Connection.sendLine(self, to_send)
+        
     def send_n_raise(self, string, *args):
         self.send(string, *args)
         
@@ -75,12 +75,12 @@ class Client(Connection):
         channel.relay(self, part_string)
         self.send(part_string)
         del self.joined_channels[channel.name]
-        del channel.clients[self]
+        channel.remove_client(self)
     
     def quit(self, quit_msg=''):
         for channel in self.joined_channels.values():
             channel.relay(self, ":%s QUIT :%s" % (self.get_ident(), quit_msg))
-            del channel.clients[self]
+            channel.remove_client(self)
         if self.transport.connected:
             self.transport.loseConnection()
         

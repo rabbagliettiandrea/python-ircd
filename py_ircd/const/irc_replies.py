@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-
 # Dizionario generato automaticamente tramite un parser dall'RFC ufficiale
 # associa a chiave RPL_something il valore di una tupla formata da ( 'valore numerico', 'funzione per la stampa del messaggio' )
 #
-# Esempio di utilsizzo:
+# Esempio di utilizzo:
 #
 #	print 'RPL_WELCOME:', dict['RPL_WELCOME'][1]('provanick!provauser@provahost')
 #	stamperà:
 #	"RPL_WELCOME: Welcome to the Internet Relay Network provanick!provauser@provahost"
-#	comunque viene utilizzato solo tramite Client.reply
+#	comunque viene utilizzato solo tramite Client.send
 
 dict = {
 	'RPL_WELCOME' : ('001', lambda ident: "Welcome to the Internet Relay Network %s" % (ident)),
@@ -33,7 +32,8 @@ dict = {
 	'RPL_LIST' : ('322', lambda channel, visible, topic: "%s %s :%s" % (channel, visible, topic)),
 	'RPL_LISTEND' : ('323', lambda : ":End of LIST"  % ()),
 	'RPL_UNIQOPIS' : ('325', lambda channel, nickname: "%s %s" % (channel, nickname)),
-	'RPL_CHANNELMODEIS' : ('324', lambda channel, mode, mode_params: "%s %s %s" % (channel, mode, mode_params)),
+	'RPL_CHANNELMODEIS' : ('324', lambda channel, modes: "%s %s" % (channel, modes)),
+	'RPL_CREATIONTIME' : ('329', lambda channel, time_from_epoch: '%s %s' % (channel, time_from_epoch)),
 	'RPL_NOTOPIC' : ('331', lambda channel: "%s :No topic is set" % (channel)),
 	'RPL_TOPIC' : ('332', lambda channel, topic: "%s :%s"  % (channel, topic)),
 	'RPL_INVITING' : ('341', lambda channel, nick: "%s %s"  % (channel, nick)),

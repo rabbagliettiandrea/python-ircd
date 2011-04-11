@@ -20,8 +20,8 @@ class TestIRC(Platform):
         client_2 = MockClient()
         self.hello(client_1, psw='passwd', nick='nick1', user='user1')
         self.hello(client_2, psw='passwd', nick='nick2', user='user2')
-        self.join(client_1, '#test_channel')
-        self.join(client_2, '#test_channel')
+        client_1.t_send_line('join #test_channel')
+        client_2.t_send_line('join #test_channel')
         client_1.t_send_line('privmsg #test_channel :Some tests, python reigns!')
         self.assert_data_contains(client_2, 'Some tests, python reigns!')
                 
@@ -42,12 +42,12 @@ class TestIRC(Platform):
         
     def test_join_with_secret_key(self):
         client_creator = MockClient()
-        client_2 = MockClient()
+        client = MockClient()
         self.hello(client_creator, nick='nick1', user='user1')
-        self.join(client_creator, '#test_channel')
+        client.t_send_line('join #test_channel')
         client_creator.t_send_line('mode #test_channel +k secretfoo')
-        self.assert_exchange(client_2, ('join #test_channel', ':testing_srv 475'))
-        self.assert_exchange(client_2, ('join #test_channel secretfoo', ':testing_srv 366'))
+        self.assert_exchange(client, ('join #test_channel', ':testing_srv 475'))
+        self.assert_exchange(client, ('join #test_channel secretfoo', ':testing_srv 366'))
         
     def test_part_all_from_join_0(self):
         client = MockClient()
@@ -65,4 +65,13 @@ class TestIRC(Platform):
         client_1.t_send_line('part #chan3, #chan2 :this is a part message!!')
         self.assert_data_contains(client_2, '#chan2 :this is a part message!!', '#chan3 :this is a part message!!')
 
-        
+    def test_query_w_mode(self):
+        client_1 = MockClient()
+        client_2 = MockClient()
+        self.hello(client_1, nick='nick1', user='user1')
+        self.hello(client_2, nick='nick2', user='user2')
+        client_1.t_send_line('join #chan')
+        client_2.t_send_line('mode #chan')
+        self.assert_data_contains(client_2, ':testing_srv 324', ':testing_srv 329')
+        self.assert_exchange(client_1, ('mode nick2', ':testing_srv 221'))
+        self.assert_exchange(client_1, ('mode nickFOO', ':testing_srv 401'))
