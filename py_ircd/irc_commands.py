@@ -91,11 +91,11 @@ def command_join(client, lineSplit):
 
 
 def command_part(client, lineSplit):
-    if len(lineSplit)<2:
+    if len(lineSplit) < 2:
         client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
     
     part_msg = None
-    if len(lineSplit)>2:
+    if len(lineSplit) > 2:
         part_msg = lineSplit[2]
     
     topart_list = lineSplit[1].split(',')
