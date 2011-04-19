@@ -7,8 +7,10 @@ from py_ircd.channel import Channel
 def get_command(name):
     return globals().get('command_'+name, command_unknown)
 
+
 def command_unknown(client, lineSplit):
     client.send_n_raise('ERR_UNKNOWNCOMMAND', lineSplit[0])
+
 
 def command_pass(client, lineSplit):
     if len(lineSplit) == 1 or not command_regex['pass'].match(lineSplit[1]):
@@ -17,6 +19,7 @@ def command_pass(client, lineSplit):
         client.send_n_raise('ERR_ALREADYREGISTRED')
     
     client.password = lineSplit[1]
+
 
 def command_nick(client, lineSplit):
     if len(lineSplit) == 1:
@@ -27,7 +30,8 @@ def command_nick(client, lineSplit):
         client.send_n_raise('ERR_ERRONEUSNICKNAME', lineSplit[1])
     
     client.nick = lineSplit[1]
-    
+
+
 def command_user(client, lineSplit):
     if client.registered or not client.nick:  
         client.send_n_raise('ERR_ALREADYREGISTRED')
@@ -42,6 +46,7 @@ def command_user(client, lineSplit):
     client.registered = True
     client.factory.clients[client.nick] = client
     client.send('RPL_WELCOME', client.get_ident())
+
 
 def command_join(client, lineSplit):
     if len(lineSplit)<2:
@@ -139,8 +144,8 @@ def command_quit(client, lineSplit):
     client.quit(msg)
     
     
-def command_mode(client, lineSplit): #TODO
-    if len(lineSplit) == 1 or (len(lineSplit)>2 and lineSplit[2][0] not in '+-'):
+def command_mode(client, lineSplit):
+    if len(lineSplit) < 2:
         client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
      
     target = lineSplit[1]  
@@ -155,24 +160,35 @@ def command_mode(client, lineSplit): #TODO
         else:
             if target not in client.factory.clients:
                 client.send_n_raise('ERR_NOSUCHNICK', target)
+            if target != client.nick:
+                client.send_n_raise('ERR_USERSDONTMATCH')
             client.send('RPL_UMODEIS', '+' + ''.join(client.factory.clients[target].modes)) 
+    else:
+        # FIN QUI E' TUTTO OK!
+        if lineSplit[2][0] not in '+-':
+            modes = '+' + lineSplit[2][:3] # [:3] prende solo i primi 3 mode
+        else:
+            modes = lineSplit[2][:4]
+
+        if target[0] in '#&!+': # is a channel
+            pass #TODO
+    #        if modes[0] == '+':
+    #            Channel.channels[target].modes.update(modes[1:])
+    #        else:
+    #            Channel.channels[target].modes.difference_update(modes[1:])
+        else: # is an user
+            if not set(modes[1:]).issubset('aiwrs'):
+                client.send_n_raise('ERR_UMODEUNKNOWNFLAG')
+            if client.nick != target:
+                client.send_n_raise('ERR_USERSDONTMATCH')
     
-    # FIN QUI E' TUTTO OK!
-    
-#    modes = (lineSplit[2][0], list(lineSplit[2][1:]))
-#    
-#    if target[0] in '#&!+':
-#        if modes[0] == '+':
-#            Channel.channels[chan_name].modes.add(lineSplit[2][1])
-#            Channel.channels[chan_name].key=lineSplit[3]
-#        else:
-#            pass
-#    else: # is an user
-#        if not set(modes[1]).issubset('aiwrs'):
-#            client.send_n_raise('ERR_UMODEUNKNOWNFLAG')
-#        if client.nick != target:
-#            client.send_n_raise('ERR_USERSDONTMATCH')
-#        if True: 
-#            pass
-        
-        
+            if 'a' in modes: # ignora richieste di +/-a (si può settare solo tramite /away)
+                if len(modes[1:]) == 0:
+                    return
+                modes = modes.replace('a', '')
+
+            if modes[0] == '+':
+                client.modes.update(modes[1:])
+            else:
+                client.modes.difference_update(modes[1:])
+            client.send(":%s MODE %s :%s" % (client.nick, client.nick, modes))
