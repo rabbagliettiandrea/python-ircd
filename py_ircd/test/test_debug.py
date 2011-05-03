@@ -6,3 +6,4 @@ class TestDebug(Platform):
     def _test_singleton(self):
         pass
         
+            

@@ -12,8 +12,9 @@ class Platform(unittest.TestCase):
     
     utils.VERBOSITY_LEVEL = constants.VERBOSITY_SILENT
     
-    def assert_data_contains(self, client, expected):
-        self.assertIn(expected, client.t_get_data())
+    def assert_data_contains(self, client, *expected_list):
+        for expected in expected_list:
+            self.assertIn(expected, client.t_get_data())
 
     def assert_exchange(self, client, tuples):
         if not isinstance(tuples, list):

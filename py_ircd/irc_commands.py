@@ -52,7 +52,7 @@ def command_join(client, lineSplit):
         return
     
     tojoin_list = [chan_name for chan_name in lineSplit[1].split(',') if chan_name]
-    key_list = len(lineSplit)>2 and lineSplit[3]
+    key_list = len(lineSplit)>2 and lineSplit[2].split(',')
         
     for chan_name in tojoin_list:
         if not command_regex['chan_name'].match(chan_name):
@@ -66,7 +66,7 @@ def command_join(client, lineSplit):
         if not channel in client.joined_channels:
             
             if 'k' in channel.modes:
-                if len(key_list):
+                if key_list and len(key_list):
                     key = key_list.pop()
                     if channel.key != key:
                         client.send_n_raise('ERR_BADCHANNELKEY', chan_name)
@@ -87,17 +87,22 @@ def command_join(client, lineSplit):
 def command_part(client, lineSplit):
     if len(lineSplit)<2:
         client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
-    chan_name = lineSplit[1]
-    if chan_name not in Channel.channels:
-        client.send_n_raise('ERR_NOSUCHCHANNEL', chan_name)
-    if chan_name not in client.joined_channels:
-        client.send_n_raise('ERR_NOTONCHANNEL', chan_name)
+    elif len(lineSplit)>2:
+        part_msg = lineSplit[2]
     
-    channel = client.joined_channels[chan_name]
-    if len(lineSplit)>2:
-        client.part(channel, lineSplit[2])
-    else:
-        client.part(channel) 
+    topart_list = lineSplit[1].split(',')
+    
+    for chan_name in topart_list:
+        if chan_name not in Channel.channels:
+            client.send_n_raise('ERR_NOSUCHCHANNEL', chan_name)
+        if chan_name not in client.joined_channels:
+            client.send_n_raise('ERR_NOTONCHANNEL', chan_name)
+        
+        channel = client.joined_channels[chan_name]
+        if part_msg:
+            client.part(channel, part_msg)
+        else:
+            client.part(channel)
         
         
 def command_privmsg(client, lineSplit):
@@ -127,3 +132,17 @@ def command_privmsg(client, lineSplit):
 def command_quit(client, lineSplit):
     msg = (len(lineSplit)>1 and lineSplit[1]) or "Client quit"
     client.quit(msg)
+    
+    
+def command_mode(client, lineSplit): #TODO
+    if len(lineSplit)<3:
+        client.send_n_raise('ERR_NEEDMOREPARAMS', lineSplit[0])
+        
+    chan_name = lineSplit[1]
+    if lineSplit[2][0] == '+':
+        Channel.channels[chan_name].modes.add(lineSplit[2][1])
+        Channel.channels[chan_name].key=lineSplit[3]
+    elif lineSplit[2][0] == '-':
+        pass
+    else:
+        pass #error

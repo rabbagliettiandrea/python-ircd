@@ -36,8 +36,9 @@ class Client(Connection):
         colon_index = line.find(':')
         if colon_index != -1:
             line = util_regex['subcommaspace'].sub(',', line[ : colon_index])+line[colon_index : ]
-            lineSplit = line[ : colon_index].lower().split()
-            lineSplit.append(line[colon_index+1 : ]) # il +1 ci elimina i :
+            colon_index = line.find(':')
+            lineSplit = line[ : colon_index-1].lower().split()
+            lineSplit.append(line[colon_index+1 : ])
         else:
             lineSplit = util_regex['subcommaspace'].sub(',', line).lower().split()
             
