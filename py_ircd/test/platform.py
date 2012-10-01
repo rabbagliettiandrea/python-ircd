@@ -9,9 +9,9 @@ from py_ircd.const import irc_replies
 
 
 class Platform(unittest.TestCase):
-    
+
     utils.VERBOSITY_LEVEL = constants.VERBOSITY_SILENT
-    
+
     def assert_data_contains(self, client, *expected_list):
         for expected in expected_list:
             if 'RPL' in expected or 'ERR' in expected:
@@ -32,7 +32,7 @@ class Platform(unittest.TestCase):
             else:
                 assert_func(tuple.expected, reply_from_srv)
             client.t_flush_data()
-        
+
     def hello(self, client, psw='passtest', nick='nick_test', user='user_test'):
         client.t_send_lines('pass %s' % psw,
                            'nick %s' % nick,
@@ -40,5 +40,4 @@ class Platform(unittest.TestCase):
         self.assertNotIn(':testing_srv 461', client.t_get_data())
         self.assertIn(':testing_srv 001', client.t_get_data())
         client.t_flush_data()
-        
-        
+
