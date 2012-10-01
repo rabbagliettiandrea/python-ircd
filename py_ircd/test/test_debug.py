@@ -3,5 +3,5 @@ from py_ircd.test.platform import Platform
 
 
 class TestDebug(Platform):
-    
+
     pass

@@ -3,5 +3,5 @@
 class ClientError(Exception):
     pass
 
-class UnknownCommandError(ClientError): 
+class UnknownCommandError(ClientError):
     pass
